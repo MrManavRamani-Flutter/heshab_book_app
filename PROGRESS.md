@@ -23,8 +23,8 @@
 | 10 | Billing System (Purchase + Sales + Return) | ✅ Done |
 | 11 | Payment Management Module | ✅ Done |
 | 12 | Ledger System | ✅ Done |
-| 13 | Expense Management Module | 🟡 Next Up |
-| 14 | Profit & Loss Module | ⬜ Pending |
+| 13 | Expense Management Module | ✅ Done |
+| 14 | Profit & Loss Module | 🟡 Next Up |
 | 15 | Dashboard Module | ⬜ Pending |
 | 16 | Reports Module | ⬜ Pending |
 | 17 | Settings & Profile | ⬜ Pending |
@@ -499,17 +499,26 @@ Screens to route:
 
 ---
 
-## Phase 13 — Expense Management Module 🟡 NEXT UP
+## Phase 13 — Expense Management Module ✅ COMPLETE
 
-- [ ] Expense List Screen
-- [ ] Add Expense Screen
-- [ ] Expense Categories (Rent, Salary, Transport, etc.)
-- [ ] `ExpenseProvider`
-- [ ] `ExpenseRepository`
+> Completed: 2026-05-10
+
+### 13.1 — Data Layer ✅
+- [x] `ExpenseRepository` implemented (CRUD).
+- [x] **Audit Controls**: All expenses are shop-scoped (**RULE-005**) and include `paymentMode` tracking.
+- [x] Temporal filtering support for date-wise cost analysis.
+
+### 13.2 — Domain Layer (Riverpod) ✅
+- [x] `shopExpensesProvider`: Live stream of all overhead costs.
+- [x] `totalExpensesProvider`: Summary selector for cumulative spending.
+- [x] `expensesByCategoryProvider`: Advanced selector for categorized cost distribution (Rent, Salary, etc.).
+
+### 13.3 — DI Registration ✅
+- [x] `ExpenseRepository` registered in `service_locator.dart`.
 
 ---
 
-## Phase 14 — Profit & Loss Module ⬜
+## Phase 14 — Profit & Loss Module 🟡 NEXT UP
 
 - [ ] P&L Summary Screen
 - [ ] Gross Profit calculation
