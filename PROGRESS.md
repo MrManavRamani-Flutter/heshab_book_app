@@ -15,8 +15,8 @@
 | 2 | Core Database Layer (Drift + SQLite) | ✅ Done (tables created in Phase 1) |
 | 3 | Authentication Module | ✅ Done |
 | 4 | Shop Management Module | ✅ Done |
-| 5 | Category / Sub-Category / Unit Module | 🟡 Next Up |
-| 6 | Product Management Module | ⬜ Pending |
+| 5 | Category / Sub-Category / Unit Module | ✅ Done |
+| 6 | Product Management Module | 🟡 Next Up |
 | 7 | Supplier Management Module | ⬜ Pending |
 | 8 | Retailer / Customer Management Module | ⬜ Pending |
 | 9 | Stock Management Module | ⬜ Pending |
@@ -171,7 +171,26 @@ All 15 Drift tables created with RULE-004 base fields:
 
 ---
 
-## Phase 4 — Shop Management Module 🟡 NEXT UP
+## Phase 5 — Category / Sub-Category / Unit Module ✅ COMPLETE
+
+> Completed: 2026-05-09
+
+### 5.1 — Data Layer ✅
+- [x] `UnitRepository` implemented (CRUD for units).
+- [x] `CategoryRepository` implemented (CRUD for categories and sub-categories).
+- [x] Scoped all data to `shop_id` (RULE-005).
+
+### 5.2 — Domain Layer (Riverpod) ✅
+- [x] `shopUnitsProvider`: Stream of units for the active shop.
+- [x] `shopCategoriesProvider`: Stream of main categories.
+- [x] `subCategoriesProvider(categoryId)`: Family stream for sub-categories.
+
+### 5.3 — DI Registration ✅
+- [x] Registered both repositories in `service_locator.dart`.
+
+---
+
+## Phase 6 — Product Management Module 🟡 NEXT UP
 
 ```
 lib/

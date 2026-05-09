@@ -40,7 +40,7 @@ final userShopsProvider = AutoDisposeStreamProvider<List<Shop>>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef UserShopsRef = AutoDisposeStreamProviderRef<List<Shop>>;
-String _$activeShopHash() => r'96673f648eab7d1f77402a380e276518903d4980';
+String _$activeShopHash() => r'7629d9b26fb9ae79c92a026187ed8b37c6334860';
 
 /// See also [ActiveShop].
 @ProviderFor(ActiveShop)

@@ -8,6 +8,8 @@ import '../../database/daos/user_dao.dart';
 import '../../database/daos/shop_dao.dart';
 import '../../features/auth/data/repositories/auth_repository.dart';
 import '../../features/shops/data/repositories/shop_repository.dart';
+import '../../features/inventory/data/repositories/unit_repository.dart';
+import '../../features/inventory/data/repositories/category_repository.dart';
 
 final GetIt sl = GetIt.instance;
 
@@ -33,6 +35,14 @@ Future<void> setupServiceLocator() async {
       shopDao: sl<ShopDao>(),
       authBox: Hive.box(AppConstants.authBox),
     ),
+  );
+
+  sl.registerSingleton<UnitRepository>(
+    UnitRepository(sl<AppDatabase>()),
+  );
+
+  sl.registerSingleton<CategoryRepository>(
+    CategoryRepository(sl<AppDatabase>()),
   );
 
   // ── Future: Other Repositories (added per phase) ───────────────────────────
