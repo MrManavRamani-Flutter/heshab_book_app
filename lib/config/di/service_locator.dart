@@ -12,6 +12,7 @@ import '../../features/inventory/data/repositories/unit_repository.dart';
 import '../../features/inventory/data/repositories/category_repository.dart';
 import '../../features/inventory/data/repositories/product_repository.dart';
 import '../../features/parties/data/repositories/supplier_repository.dart';
+import '../../features/parties/data/repositories/retailer_repository.dart';
 
 final GetIt sl = GetIt.instance;
 
@@ -53,6 +54,10 @@ Future<void> setupServiceLocator() async {
 
   sl.registerSingleton<SupplierRepository>(
     SupplierRepository(sl<AppDatabase>()),
+  );
+
+  sl.registerSingleton<RetailerRepository>(
+    RetailerRepository(sl<AppDatabase>()),
   );
 
   // ── Future: Other Repositories (added per phase) ───────────────────────────

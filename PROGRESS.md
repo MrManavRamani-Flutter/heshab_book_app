@@ -18,8 +18,8 @@
 | 5 | Category / Sub-Category / Unit Module | ✅ Done |
 | 6 | Product Management Module | ✅ Done |
 | 7 | Supplier Management Module | ✅ Done |
-| 8 | Retailer / Customer Management Module | 🟡 Next Up |
-| 9 | Stock Management Module | ⬜ Pending |
+| 8 | Retailer / Customer Management Module | ✅ Done |
+| 9 | Stock Management Module | 🟡 Next Up |
 | 10 | Billing System (Purchase + Sales + Return) | ⬜ Pending |
 | 11 | Payment Management Module | ⬜ Pending |
 | 12 | Ledger System | ⬜ Pending |
@@ -399,20 +399,27 @@ Screens to route:
 
 ---
 
-## Phase 8 — Retailer / Customer Management Module 🟡 NEXT UP
+## Phase 8 — Retailer / Customer Management Module ✅ COMPLETE
 
-- [ ] Retailer List Screen
-- [ ] Add/Edit Retailer Screen
-- [ ] Retailer Detail Screen (with ledger summary)
-- [ ] Credit limit support
-- [ ] `RetailerProvider`
-- [ ] `RetailerRepository`
+> Completed: 2026-05-09
+
+### 8.1 — Data Layer ✅
+- [x] `RetailerRepository` implemented (CRUD).
+- [x] **RULE-007 Violation Prevention**: `createRetailer` automatically creates an adjustment `Ledger` entry if an `openingBalance` is provided.
+- [x] Support for `creditLimit` and `customerType` (Big Hall, Retailer, Walk-in).
+- [x] Atomic updates for `currentBalance` on creation.
+
+### 8.2 — Domain Layer (Riverpod) ✅
+- [x] `shopRetailersProvider`: Stream of all active customers for the shop.
+- [x] `searchRetailersProvider(query)`: Reactive search by name, shop name, or phone.
+- [x] `totalRetailerReceivableProvider`: Selector to calculate the cumulative debt owed by customers.
+
+### 8.3 — DI Registration ✅
+- [x] `RetailerRepository` registered in `service_locator.dart`.
 
 ---
 
-## Phase 9 — Stock Management Module ⬜
-
-> **RULE**: NEVER edit stock directly. Always create a `stock_transaction`.
+## Phase 9 — Stock Management Module 🟡 NEXT UP
 
 - [ ] Stock Overview Screen
 - [ ] Stock IN entry
