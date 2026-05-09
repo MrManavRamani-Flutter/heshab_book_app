@@ -16,8 +16,8 @@
 | 3 | Authentication Module | ✅ Done |
 | 4 | Shop Management Module | ✅ Done |
 | 5 | Category / Sub-Category / Unit Module | ✅ Done |
-| 6 | Product Management Module | 🟡 Next Up |
-| 7 | Supplier Management Module | ⬜ Pending |
+| 6 | Product Management Module | ✅ Done |
+| 7 | Supplier Management Module | 🟡 Next Up |
 | 8 | Retailer / Customer Management Module | ⬜ Pending |
 | 9 | Stock Management Module | ⬜ Pending |
 | 10 | Billing System (Purchase + Sales + Return) | ⬜ Pending |
@@ -190,7 +190,26 @@ All 15 Drift tables created with RULE-004 base fields:
 
 ---
 
-## Phase 6 — Product Management Module 🟡 NEXT UP
+## Phase 6 — Product Management Module ✅ COMPLETE
+
+> Completed: 2026-05-09
+
+### 6.1 — Data Layer ✅
+- [x] `ProductRepository` implemented (CRUD).
+- [x] **RULE-002 Violation Prevention**: `createProduct` now uses a transaction to simultaneously create the product AND its initial `StockTransaction` (opening stock).
+- [x] Atomic updates for stock cache on product creation.
+
+### 6.2 — Domain Layer (Riverpod) ✅
+- [x] `shopProductsProvider`: Stream of all active products for the shop.
+- [x] `searchProductsProvider(query)`: Reactive search using database `LIKE` queries for performance.
+- [x] `lowStockProductsProvider`: Synchronous selector to quickly identify items below `minimumStockAlert`.
+
+### 6.3 — DI & UI Prep ✅
+- [x] `ProductRepository` registered in `service_locator.dart`.
+
+---
+
+## Phase 7 — Supplier Management Module 🟡 NEXT UP
 
 ```
 lib/
