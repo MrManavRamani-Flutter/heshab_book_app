@@ -27,6 +27,8 @@ Run this command and share output:
 flutter --version
 ```
 
+> ✅ **Provided**: Flutter 3.41.5 • Dart 3.11.3 • DevTools 2.54.2 — Compatible!
+
 **Why needed**: Drift + Riverpod 2.x requires Flutter 3.x (SDK `^3.0.0`). Need to confirm compatibility.
 
 ---
@@ -34,9 +36,9 @@ flutter --version
 ### 3. App Name & App ID (Bundle ID)
 > What should be the official app name shown on phone?
 
-- **App Name**: (e.g., "Heshab Book" or "हिसाब Book")
-- **Android Package ID**: (e.g., `com.yourname.heshabbook`)
-- **iOS Bundle ID**: (e.g., `com.yourname.heshabbook`)
+- **App Name**: ✅ `Heshab Book`
+- **Android Package ID**: ✅ `com.manav.heshabpro`
+- **iOS Bundle ID**: ✅ `com.manav.heshabpro`
 
 **Why needed**: Required for Android `AndroidManifest.xml` and iOS `Info.plist` configuration.
 
@@ -162,11 +164,11 @@ Indian: `1,00,000`
 
 | # | Item | Status | Value |
 |---|------|--------|-------|
-| 1 | Target Platform | ⬜ | - |
-| 2 | Flutter Version | ⬜ | - |
-| 3 | App Name & Bundle ID | ⬜ | - |
-| 4 | App Language | ⬜ | - |
-| 5 | Auth Type | ⬜ | - |
+| 1 | Target Platform | ✅ | Android + iOS |
+| 2 | Flutter Version | ✅ | 3.41.5 / Dart 3.11.3 |
+| 3 | App Name & Bundle ID | ✅ | Heshab Book / com.manav.heshabpro |
+| 4 | App Language | ✅ | English + Hindi + Gujarati |
+| 5 | Auth Type | ✅ | Local Register + Login |
 | 6 | Multi-User | ⬜ | - |
 | 7 | Shop Types | ⬜ | - |
 | 8 | GST Support | ⬜ | - |
@@ -178,5 +180,5 @@ Indian: `1,00,000`
 
 ---
 
-> 📌 **Action**: Please answer at minimum items **1, 2, 3, 4, 5** so Phase 1 can begin.
-> The rest can be answered later as we reach those phases.
+> ✅ **Phase 1 UNLOCKED** — All critical items provided. Development has started.
+> The remaining items (6–13) will be asked as we reach each phase.
