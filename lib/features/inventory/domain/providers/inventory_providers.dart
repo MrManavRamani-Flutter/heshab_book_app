@@ -6,6 +6,7 @@ import '../../../../database/app_database.dart';
 import '../../../shops/domain/providers/shop_providers.dart';
 import '../../data/repositories/unit_repository.dart';
 import '../../data/repositories/category_repository.dart';
+import '../../data/repositories/stock_repository.dart';
 
 part 'inventory_providers.g.dart';
 
@@ -19,6 +20,11 @@ UnitRepository unitRepository(UnitRepositoryRef ref) {
 @riverpod
 CategoryRepository categoryRepository(CategoryRepositoryRef ref) {
   return sl<CategoryRepository>();
+}
+
+@riverpod
+StockRepository stockRepository(StockRepositoryRef ref) {
+  return sl<StockRepository>();
 }
 
 // ── Unit Providers ─────────────────────────────────────────────────────────
@@ -44,4 +50,19 @@ Stream<List<Category>> shopCategories(ShopCategoriesRef ref) {
 @riverpod
 Stream<List<SubCategory>> subCategories(SubCategoriesRef ref, int categoryId) {
   return ref.watch(categoryRepositoryProvider).watchSubCategories(categoryId);
+}
+
+// ── Stock Providers ────────────────────────────────────────────────────────
+
+@riverpod
+Stream<List<StockTransaction>> productStockHistory(ProductStockHistoryRef ref, int productId) {
+  return ref.watch(stockRepositoryProvider).watchProductHistory(productId);
+}
+
+@riverpod
+Stream<List<StockTransaction>> shopStockHistory(ShopStockHistoryRef ref) {
+  final activeShop = ref.watch(activeShopProvider);
+  if (activeShop == null) return Stream.value([]);
+  
+  return ref.watch(stockRepositoryProvider).watchShopHistory(activeShop.id);
 }

@@ -42,6 +42,23 @@ final categoryRepositoryProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef CategoryRepositoryRef = AutoDisposeProviderRef<CategoryRepository>;
+String _$stockRepositoryHash() => r'60eef074ceddf48fc7b8a450559c007631d454c4';
+
+/// See also [stockRepository].
+@ProviderFor(stockRepository)
+final stockRepositoryProvider = AutoDisposeProvider<StockRepository>.internal(
+  stockRepository,
+  name: r'stockRepositoryProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$stockRepositoryHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef StockRepositoryRef = AutoDisposeProviderRef<StockRepository>;
 String _$shopUnitsHash() => r'881a3d8be21776ccb2cdd9f92a43ffb816565360';
 
 /// See also [shopUnits].
@@ -219,5 +236,149 @@ class _SubCategoriesProviderElement
   int get categoryId => (origin as SubCategoriesProvider).categoryId;
 }
 
+String _$productStockHistoryHash() =>
+    r'cf4690f2fc78225d8a266b67114caef9148fde62';
+
+/// See also [productStockHistory].
+@ProviderFor(productStockHistory)
+const productStockHistoryProvider = ProductStockHistoryFamily();
+
+/// See also [productStockHistory].
+class ProductStockHistoryFamily
+    extends Family<AsyncValue<List<StockTransaction>>> {
+  /// See also [productStockHistory].
+  const ProductStockHistoryFamily();
+
+  /// See also [productStockHistory].
+  ProductStockHistoryProvider call(int productId) {
+    return ProductStockHistoryProvider(productId);
+  }
+
+  @override
+  ProductStockHistoryProvider getProviderOverride(
+    covariant ProductStockHistoryProvider provider,
+  ) {
+    return call(provider.productId);
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'productStockHistoryProvider';
+}
+
+/// See also [productStockHistory].
+class ProductStockHistoryProvider
+    extends AutoDisposeStreamProvider<List<StockTransaction>> {
+  /// See also [productStockHistory].
+  ProductStockHistoryProvider(int productId)
+    : this._internal(
+        (ref) => productStockHistory(ref as ProductStockHistoryRef, productId),
+        from: productStockHistoryProvider,
+        name: r'productStockHistoryProvider',
+        debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+            ? null
+            : _$productStockHistoryHash,
+        dependencies: ProductStockHistoryFamily._dependencies,
+        allTransitiveDependencies:
+            ProductStockHistoryFamily._allTransitiveDependencies,
+        productId: productId,
+      );
+
+  ProductStockHistoryProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.productId,
+  }) : super.internal();
+
+  final int productId;
+
+  @override
+  Override overrideWith(
+    Stream<List<StockTransaction>> Function(ProductStockHistoryRef provider)
+    create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: ProductStockHistoryProvider._internal(
+        (ref) => create(ref as ProductStockHistoryRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        productId: productId,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeStreamProviderElement<List<StockTransaction>> createElement() {
+    return _ProductStockHistoryProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is ProductStockHistoryProvider && other.productId == productId;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, productId.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin ProductStockHistoryRef
+    on AutoDisposeStreamProviderRef<List<StockTransaction>> {
+  /// The parameter `productId` of this provider.
+  int get productId;
+}
+
+class _ProductStockHistoryProviderElement
+    extends AutoDisposeStreamProviderElement<List<StockTransaction>>
+    with ProductStockHistoryRef {
+  _ProductStockHistoryProviderElement(super.provider);
+
+  @override
+  int get productId => (origin as ProductStockHistoryProvider).productId;
+}
+
+String _$shopStockHistoryHash() => r'a5ab7574b7cf2f920cf091955552d795f8697948';
+
+/// See also [shopStockHistory].
+@ProviderFor(shopStockHistory)
+final shopStockHistoryProvider =
+    AutoDisposeStreamProvider<List<StockTransaction>>.internal(
+      shopStockHistory,
+      name: r'shopStockHistoryProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$shopStockHistoryHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef ShopStockHistoryRef =
+    AutoDisposeStreamProviderRef<List<StockTransaction>>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

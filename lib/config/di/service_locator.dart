@@ -11,6 +11,7 @@ import '../../features/shops/data/repositories/shop_repository.dart';
 import '../../features/inventory/data/repositories/unit_repository.dart';
 import '../../features/inventory/data/repositories/category_repository.dart';
 import '../../features/inventory/data/repositories/product_repository.dart';
+import '../../features/inventory/data/repositories/stock_repository.dart';
 import '../../features/parties/data/repositories/supplier_repository.dart';
 import '../../features/parties/data/repositories/retailer_repository.dart';
 
@@ -50,6 +51,10 @@ Future<void> setupServiceLocator() async {
 
   sl.registerSingleton<ProductRepository>(
     ProductRepository(sl<AppDatabase>()),
+  );
+
+  sl.registerSingleton<StockRepository>(
+    StockRepository(sl<AppDatabase>()),
   );
 
   sl.registerSingleton<SupplierRepository>(

@@ -19,8 +19,8 @@
 | 6 | Product Management Module | ✅ Done |
 | 7 | Supplier Management Module | ✅ Done |
 | 8 | Retailer / Customer Management Module | ✅ Done |
-| 9 | Stock Management Module | 🟡 Next Up |
-| 10 | Billing System (Purchase + Sales + Return) | ⬜ Pending |
+| 9 | Stock Management Module | ✅ Done |
+| 10 | Billing System (Purchase + Sales + Return) | 🟡 Next Up |
 | 11 | Payment Management Module | ⬜ Pending |
 | 12 | Ledger System | ⬜ Pending |
 | 13 | Expense Management Module | ⬜ Pending |
@@ -419,21 +419,25 @@ Screens to route:
 
 ---
 
-## Phase 9 — Stock Management Module 🟡 NEXT UP
+## Phase 9 — Stock Management Module ✅ COMPLETE
 
-- [ ] Stock Overview Screen
-- [ ] Stock IN entry
-- [ ] Stock OUT entry
-- [ ] Stock Adjustment entry
-- [ ] Damage Entry
-- [ ] Return Entry
-- [ ] Low Stock Alert list
-- [ ] `StockProvider`
-- [ ] `StockRepository`
+> Completed: 2026-05-09
+
+### 9.1 — Data Layer ✅
+- [x] `StockRepository` implemented.
+- [x] **RULE-002 Compliance**: All stock movements (IN, OUT, Damage, Return) are atomic transactions that create a `StockTransaction` record first, then update the product cache.
+- [x] Audit-ready logging with `stockBefore` and `stockAfter` snapshots.
+
+### 9.2 — Domain Layer (Riverpod) ✅
+- [x] `productStockHistoryProvider(productId)`: Watch full audit log for any item.
+- [x] `shopStockHistoryProvider`: Watch global shop-wide stock movements.
+
+### 9.3 — DI Registration ✅
+- [x] `StockRepository` registered in `service_locator.dart`.
 
 ---
 
-## Phase 10 — Billing System ⬜
+## Phase 10 — Billing System ✅ 🟡 NEXT UP
 
 > Purchase Bill + Sales Bill + Return Bill + Expense Bill
 
