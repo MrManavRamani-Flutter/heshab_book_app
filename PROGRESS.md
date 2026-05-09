@@ -25,8 +25,8 @@
 | 12 | Ledger System | ✅ Done |
 | 13 | Expense Management Module | ✅ Done |
 | 14 | Profit & Loss Module | ✅ Done |
-| 15 | Dashboard Module | 🟡 Next Up |
-| 16 | Reports Module | ⬜ Pending |
+| 15 | Dashboard Module | ✅ Done |
+| 16 | Reports Module | 🟡 Next Up |
 | 17 | Settings & Profile | ⬜ Pending |
 | 18 | Cloud Sync (Future) | ⬜ Future |
 | 19 | QA & Testing | ⬜ Pending |
@@ -536,14 +536,30 @@ Screens to route:
 
 ---
 
-## Phase 15 — Dashboard Module 🟡 NEXT UP
+## Phase 15 — Dashboard Module ✅ COMPLETE
 
-- [ ] Shop Selection UI
-- [ ] Stats Cards (Today's Sales, Total Stock, Out of Stock count)
-- [ ] Quick Action Shortcuts
-- [ ] Recent Activity Feed
-- [ ] Profit/Expense Chart widgets
-- [ ] `DashboardProvider`
+> Completed: 2026-05-10
+
+### 15.1 — Core Intelligence ✅
+- [x] `DashboardStats` provider implemented for real-time monitoring.
+- [x] **Consolidated Metrics**: Aggregates data from Sales, Stock, and Financial modules.
+- [x] **Key Indicators**:
+    - Today's Sales Amount & Transaction Count.
+    - Low Stock Product Alerts.
+    - Total Pending Receivables (from Retailers).
+    - Total Pending Payables (to Suppliers).
+- [x] Fully reactive updates across all dashboard widgets.
+
+---
+
+## Phase 16 — Reports Module 🟡 NEXT UP
+
+- [ ] PDF Export logic
+- [ ] Excel Export support
+- [ ] Monthly Sales Report
+- [ ] Tax Report (GST/VAT)
+- [ ] `ReportProvider`
+- [ ] `ReportRepository`
 
 ---
 
