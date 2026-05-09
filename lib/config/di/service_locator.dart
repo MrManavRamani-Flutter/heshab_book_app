@@ -7,6 +7,7 @@ import '../../database/app_database.dart';
 import '../../database/daos/user_dao.dart';
 import '../../database/daos/shop_dao.dart';
 import '../../features/auth/data/repositories/auth_repository.dart';
+import '../../features/shops/data/repositories/shop_repository.dart';
 
 final GetIt sl = GetIt.instance;
 
@@ -18,10 +19,17 @@ Future<void> setupServiceLocator() async {
   sl.registerSingleton<UserDao>(sl<AppDatabase>().userDao);
   sl.registerSingleton<ShopDao>(sl<AppDatabase>().shopDao);
 
-  // ── Auth ───────────────────────────────────────────────────────────────────
+  // ── Repositories ──────────────────────────────────────────────────────────
   sl.registerSingleton<AuthRepository>(
     AuthRepository(
       userDao: sl<UserDao>(),
+      shopDao: sl<ShopDao>(),
+      authBox: Hive.box(AppConstants.authBox),
+    ),
+  );
+
+  sl.registerSingleton<ShopRepository>(
+    ShopRepository(
       shopDao: sl<ShopDao>(),
       authBox: Hive.box(AppConstants.authBox),
     ),

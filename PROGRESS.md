@@ -14,8 +14,8 @@
 | 1 | Foundation & Architecture Setup | ✅ Done |
 | 2 | Core Database Layer (Drift + SQLite) | ✅ Done (tables created in Phase 1) |
 | 3 | Authentication Module | ✅ Done |
-| 4 | Shop Management Module | 🟡 Next Up |
-| 5 | Category / Sub-Category / Unit Module | ⬜ Pending |
+| 4 | Shop Management Module | ✅ Done |
+| 5 | Category / Sub-Category / Unit Module | 🟡 Next Up |
 | 6 | Product Management Module | ⬜ Pending |
 | 7 | Supplier Management Module | ⬜ Pending |
 | 8 | Retailer / Customer Management Module | ⬜ Pending |
