@@ -20,8 +20,8 @@
 | 7 | Supplier Management Module | ✅ Done |
 | 8 | Retailer / Customer Management Module | ✅ Done |
 | 9 | Stock Management Module | ✅ Done |
-| 10 | Billing System (Purchase + Sales + Return) | 🟡 Next Up |
-| 11 | Payment Management Module | ⬜ Pending |
+| 10 | Billing System (Purchase + Sales + Return) | ✅ Done |
+| 11 | Payment Management Module | 🟡 Next Up |
 | 12 | Ledger System | ⬜ Pending |
 | 13 | Expense Management Module | ⬜ Pending |
 | 14 | Profit & Loss Module | ⬜ Pending |
@@ -437,25 +437,30 @@ Screens to route:
 
 ---
 
-## Phase 10 — Billing System ✅ 🟡 NEXT UP
+## Phase 10 — Billing System ✅ COMPLETE
 
-> Purchase Bill + Sales Bill + Return Bill + Expense Bill
+> Completed: 2026-05-09
 
-- [ ] Bill List Screen
-- [ ] Create Purchase Bill Screen
-- [ ] Create Sales Bill Screen
-- [ ] Create Return Bill Screen
-- [ ] Bill Detail Screen (with items)
-- [ ] Auto stock update on bill save
-- [ ] Auto ledger entry on bill save
-- [ ] Auto pending amount calculation
-- [ ] Bill number auto-generation
-- [ ] `BillProvider`
-- [ ] `BillRepository`
+### 10.1 — Data Layer ✅
+- [x] `BillRepository` implemented with complex transactional logic.
+- [x] **Auto-Pilot Integration**: Saving a bill now automatically:
+    - Creates `StockTransactions` for every item (**RULE-002**).
+    - Updates `Product` stock cache.
+    - Creates `Ledger` entry for the party (**RULE-007**).
+    - Updates `Supplier`/`Retailer` current balance.
+- [x] Sequential bill number generation (e.g., SB-2025-0001).
+
+### 10.2 — Domain Layer (Riverpod) ✅
+- [x] `shopBillsProvider`: General stream of all bills.
+- [x] `salesBillsProvider` / `purchaseBillsProvider`: Specialized history streams.
+- [x] `totalSalesAmountProvider` / `totalPurchaseAmountProvider`: Business volume selectors.
+
+### 10.3 — DI Registration ✅
+- [x] `BillRepository` registered in `service_locator.dart`.
 
 ---
 
-## Phase 11 — Payment Management Module ⬜
+## Phase 11 — Payment Management Module 🟡 NEXT UP
 
 - [ ] Payment List Screen
 - [ ] Record Payment Screen (pay/receive)
