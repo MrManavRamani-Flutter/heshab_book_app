@@ -165,6 +165,19 @@ These rules are based on general Flutter/Drift/Riverpod production patterns.
 
 
 ---
++
++### ERR-004 — Incorrect Relative Import Path in Features
++- **Phase**: Phase 4 — Shop Management Module
++- **Date**: 2026-05-09
++- **File(s)**: `lib/features/shops/domain/providers/shop_providers.dart`
++- **Error Message**:
++  ```
++  error: Target of URI doesn't exist: '../repositories/shop_repository.dart'.
++  ```
++- **Root Cause**: Mistakenly assumed `domain/providers` and `data/repositories` were siblings. They are siblings under the feature root, so a `../../` jump is required.
++- **Fix Applied**: Corrected import to `../../data/repositories/shop_repository.dart`.
++- **Prevention Rule**: Always double-check the directory depth when using relative imports in Clean Architecture folders.
++
 
 ## 📋 Error Entry Template
 

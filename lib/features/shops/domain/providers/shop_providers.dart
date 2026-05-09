@@ -6,7 +6,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../../config/di/service_locator.dart';
 import '../../../../database/app_database.dart';
 import '../../../auth/domain/providers/auth_provider.dart';
-import '../repositories/shop_repository.dart';
+import '../../data/repositories/shop_repository.dart';
 
 part 'shop_providers.g.dart';
 
@@ -55,7 +55,7 @@ class ActiveShop extends _$ActiveShop {
         return shops.first;
       },
       loading: () => null,
-      error: (_, __) => null,
+      error: (e, st) => null,
     );
   }
 
