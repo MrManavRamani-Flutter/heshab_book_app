@@ -21,8 +21,8 @@
 | 8 | Retailer / Customer Management Module | ✅ Done |
 | 9 | Stock Management Module | ✅ Done |
 | 10 | Billing System (Purchase + Sales + Return) | ✅ Done |
-| 11 | Payment Management Module | 🟡 Next Up |
-| 12 | Ledger System | ⬜ Pending |
+| 11 | Payment Management Module | ✅ Done |
+| 12 | Ledger System | 🟡 Next Up |
 | 13 | Expense Management Module | ⬜ Pending |
 | 14 | Profit & Loss Module | ⬜ Pending |
 | 15 | Dashboard Module | ⬜ Pending |
@@ -460,18 +460,27 @@ Screens to route:
 
 ---
 
-## Phase 11 — Payment Management Module 🟡 NEXT UP
+## Phase 11 — Payment Management Module ✅ COMPLETE
 
-- [ ] Payment List Screen
-- [ ] Record Payment Screen (pay/receive)
-- [ ] Payment History per Supplier/Retailer
-- [ ] Auto ledger update on payment
-- [ ] `PaymentProvider`
-- [ ] `PaymentRepository`
+> Completed: 2026-05-10
+
+### 11.1 — Data Layer ✅
+- [x] `PaymentRepository` implemented for 'pay' and 'receive' directions.
+- [x] **Ledger Integration**: Payments automatically create `Ledger` entries (**RULE-007**).
+- [x] **Balance Consistency**: Automatically updates `Supplier`/`Retailer` current balance AND reduces linked bill pending amount (**RULE-008**).
+- [x] Support for multiple payment modes (Cash, Bank, UPI, Cheque).
+
+### 11.2 — Domain Layer (Riverpod) ✅
+- [x] `shopPaymentsProvider`: Watch all shop-wide financial transactions.
+- [x] `partyPaymentsProvider(supplierId, retailerId)`: Specialized history per party.
+- [x] `totalPaymentsMadeProvider` / `totalPaymentsReceivedProvider`: Cash flow summary selectors.
+
+### 11.3 — DI Registration ✅
+- [x] `PaymentRepository` registered in `service_locator.dart`.
 
 ---
 
-## Phase 12 — Ledger System ⬜
+## Phase 12 — Ledger System 🟡 NEXT UP
 
 - [ ] Ledger View per Supplier
 - [ ] Ledger View per Retailer
