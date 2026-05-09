@@ -7,6 +7,7 @@ class RouteNames {
   static const String splash = '/';
   static const String login = '/login';
   static const String register = '/register';
+  static const String shopSetup = '/shop-setup';
 
   // Main
   static const String dashboard = '/dashboard';
@@ -28,5 +29,4 @@ class RouteNames {
   static const String reports = '/reports';
   static const String settings = '/settings';
   static const String profile = '/settings/profile';
-  static const String shopSetup = '/shop-setup';
 }

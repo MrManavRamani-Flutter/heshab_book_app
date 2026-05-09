@@ -1,45 +1,121 @@
 // lib/config/routes/app_router.dart
+//
+// GoRouter with auth guard — RULE-010: Unauthenticated users cannot access protected routes.
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'route_names.dart';
 
-// ── Screens (stubs until each phase is built) ─────────────────────────────
+import 'route_names.dart';
+import '../../features/auth/data/models/auth_state.dart';
+import '../../features/auth/domain/providers/auth_provider.dart';
+
+// ── Screens ────────────────────────────────────────────────────────────────
 import '../../features/auth/presentation/screens/splash_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/register_screen.dart';
+import '../../features/auth/presentation/screens/shop_setup_screen.dart';
 import '../../features/dashboard/presentation/screens/dashboard_screen.dart';
 
+// ── Router Notifier (bridges Riverpod → GoRouter refresh) ─────────────────
+
+class RouterNotifier extends ChangeNotifier {
+  RouterNotifier(this._ref) {
+    _ref.listen<AuthState>(authProvider, (prev, next) => notifyListeners());
+  }
+  final Ref _ref;
+}
+
+final routerNotifierProvider = Provider<RouterNotifier>((ref) {
+  return RouterNotifier(ref);
+});
+
+// ── Router Provider ────────────────────────────────────────────────────────
+
 final routerProvider = Provider<GoRouter>((ref) {
+  final notifier = ref.watch(routerNotifierProvider);
+
   return GoRouter(
     initialLocation: RouteNames.splash,
     debugLogDiagnostics: false,
+    refreshListenable: notifier,
+
+    // ── Auth Guard ─────────────────────────────────────────────────────────
+    redirect: (context, state) {
+      final authState = ref.read(authProvider);
+      final currentPath = state.uri.path;
+
+      // Public routes — never redirect
+      final publicRoutes = [
+        RouteNames.splash,
+        RouteNames.login,
+        RouteNames.register,
+      ];
+
+      // While initial/loading — stay on splash
+      if (authState is AuthInitial || authState is AuthLoading) {
+        if (currentPath == RouteNames.splash) return null;
+        return RouteNames.splash;
+      }
+
+      // Unauthenticated — send to login
+      if (authState is AuthUnauthenticated || authState is AuthFailure) {
+        if (publicRoutes.contains(currentPath)) return null;
+        return RouteNames.login;
+      }
+
+      // Authenticated
+      if (authState is AuthAuthenticated) {
+        // If on login/register, redirect to correct screen
+        if (currentPath == RouteNames.login ||
+            currentPath == RouteNames.register) {
+          // New user → shop setup first
+          if (authState.isFirstLogin) return RouteNames.shopSetup;
+          return RouteNames.dashboard;
+        }
+
+        // If on splash, redirect to appropriate screen
+        if (currentPath == RouteNames.splash) {
+          if (authState.isFirstLogin) return RouteNames.shopSetup;
+          return RouteNames.dashboard;
+        }
+
+        // If not first login but on shop setup, redirect to dashboard
+        if (!authState.isFirstLogin &&
+            currentPath == RouteNames.shopSetup) {
+          return RouteNames.dashboard;
+        }
+
+        return null; // allow
+      }
+
+      return null;
+    },
+
+    // ── Routes ─────────────────────────────────────────────────────────────
     routes: [
-      // ── Auth ──────────────────────────────────────────────────────────────
       GoRoute(
         path: RouteNames.splash,
-        name: RouteNames.splash,
         builder: (context, state) => const SplashScreen(),
       ),
       GoRoute(
         path: RouteNames.login,
-        name: RouteNames.login,
         builder: (context, state) => const LoginScreen(),
       ),
       GoRoute(
         path: RouteNames.register,
-        name: RouteNames.register,
         builder: (context, state) => const RegisterScreen(),
       ),
-
-      // ── Main Shell ────────────────────────────────────────────────────────
+      GoRoute(
+        path: RouteNames.shopSetup,
+        builder: (context, state) => const ShopSetupScreen(),
+      ),
       GoRoute(
         path: RouteNames.dashboard,
-        name: RouteNames.dashboard,
         builder: (context, state) => const DashboardScreen(),
       ),
     ],
+
     errorBuilder: (context, state) => Scaffold(
       body: Center(
         child: Column(
@@ -51,8 +127,6 @@ final routerProvider = Provider<GoRouter>((ref) {
               'Page Not Found',
               style: Theme.of(context).textTheme.headlineMedium,
             ),
-            const SizedBox(height: 8),
-            Text(state.error?.message ?? 'Unknown error'),
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: () => context.go(RouteNames.splash),

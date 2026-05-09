@@ -10,6 +10,7 @@ import 'config/di/service_locator.dart';
 import 'config/routes/app_router.dart';
 import 'config/theme/app_theme.dart';
 import 'core/constants/app_constants.dart';
+import 'features/auth/domain/providers/auth_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,6 +20,12 @@ Future<void> main() async {
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.dark,
+    ),
+  );
 
   // ── Hive Init ──────────────────────────────────────────────────────────────
   await Hive.initFlutter();
@@ -35,11 +42,23 @@ Future<void> main() async {
   );
 }
 
-class HeshabBookApp extends ConsumerWidget {
+class HeshabBookApp extends ConsumerStatefulWidget {
   const HeshabBookApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HeshabBookApp> createState() => _HeshabBookAppState();
+}
+
+class _HeshabBookAppState extends ConsumerState<HeshabBookApp> {
+  @override
+  void initState() {
+    super.initState();
+    // Initialize auth state on app start
+    Future.microtask(() => ref.read(authProvider.notifier).initialize());
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final router = ref.watch(routerProvider);
 
     return ScreenUtilInit(
@@ -52,7 +71,7 @@ class HeshabBookApp extends ConsumerWidget {
           debugShowCheckedModeBanner: false,
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
-          themeMode: ThemeMode.light, // Will be controlled by settings in Phase 17
+          themeMode: ThemeMode.light,
           routerConfig: router,
         );
       },

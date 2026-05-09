@@ -13,8 +13,8 @@
 | 0 | Project Initialization | ✅ Done |
 | 1 | Foundation & Architecture Setup | ✅ Done |
 | 2 | Core Database Layer (Drift + SQLite) | ✅ Done (tables created in Phase 1) |
-| 3 | Authentication Module | 🟡 Next Up |
-| 4 | Shop Management Module | ⬜ Pending |
+| 3 | Authentication Module | ✅ Done |
+| 4 | Shop Management Module | 🟡 Next Up |
 | 5 | Category / Sub-Category / Unit Module | ⬜ Pending |
 | 6 | Product Management Module | ⬜ Pending |
 | 7 | Supplier Management Module | ⬜ Pending |
@@ -134,7 +134,44 @@ All 15 Drift tables created with RULE-004 base fields:
 - [x] `dart run build_runner build` — 0 errors
 - [x] `flutter analyze` — **No issues found!**
 
-### 1.2 — Folder Structure Setup
+---
+
+## Phase 3 — Authentication Module ✅ COMPLETE
+
+> Completed: 2026-05-09
+
+### 3.1 — Data Layer ✅
+- [x] `UserDao` & `ShopDao` created and registered in `AppDatabase`.
+- [x] `AuthRepository` implemented with:
+    - SHA-256 Password hashing with salt.
+    - `register()` with duplicate check (mobile/email).
+    - `login()` with hash verification.
+    - `logout()` with session cleanup.
+    - Hive session persistence (`keyIsLoggedIn`, `keyCurrentUserId`).
+
+### 3.2 — Domain Layer (Riverpod) ✅
+- [x] `AuthUser` & `AuthState` (sealed class) models.
+- [x] `AuthNotifier` refactored to `Notifier` (Riverpod 2.x `@riverpod`).
+- [x] `initialize()` to restore session on app start.
+- [x] `isAuthenticatedProvider` & `currentUserProvider` convenience selectors.
+
+### 3.3 — Presentation Layer (UI) ✅
+- [x] **Splash Screen**: Animated logo, redirects via Auth Guard.
+- [x] **Login Screen**: Premium UI with form validation, loading states, and error handling.
+- [x] **Register Screen**: 5-field form with full validation.
+- [x] **Shop Setup Screen**: Multi-step layout with Shop Type selection (Big Hall, Mix, Retail).
+- [x] `AuthFormField` reusable widget with password visibility toggle.
+
+### 3.4 — Routing & Security ✅
+- [x] **GoRouter Auth Guard**:
+    - Protects all internal routes.
+    - Redirects to `/login` if unauthenticated.
+    - Redirects to `/shop-setup` if new user hasn't created a shop.
+    - Redirects to `/dashboard` if authenticated user tries to access login.
+
+---
+
+## Phase 4 — Shop Management Module 🟡 NEXT UP
 
 ```
 lib/

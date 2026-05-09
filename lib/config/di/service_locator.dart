@@ -1,23 +1,41 @@
 // lib/config/di/service_locator.dart
 
 import 'package:get_it/get_it.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import '../../core/constants/app_constants.dart';
 import '../../database/app_database.dart';
+import '../../database/daos/user_dao.dart';
+import '../../database/daos/shop_dao.dart';
+import '../../features/auth/data/repositories/auth_repository.dart';
 
 final GetIt sl = GetIt.instance;
 
 Future<void> setupServiceLocator() async {
-  // ── Database ───────────────────────────────────────────────────────────────
+  // ── Database (Singleton) ───────────────────────────────────────────────────
   sl.registerSingleton<AppDatabase>(AppDatabase());
 
-  // ── DAOs (registered after DB) ────────────────────────────────────────────
-  // These will be added as each phase is built.
-  // Example pattern:
-  //   sl.registerSingleton<UserDao>(sl<AppDatabase>().userDao);
-  //   sl.registerSingleton<ProductDao>(sl<AppDatabase>().productDao);
+  // ── DAOs (depend on AppDatabase) ───────────────────────────────────────────
+  sl.registerSingleton<UserDao>(sl<AppDatabase>().userDao);
+  sl.registerSingleton<ShopDao>(sl<AppDatabase>().shopDao);
 
-  // ── Repositories ──────────────────────────────────────────────────────────
-  // Will be registered here as each feature is built.
+  // ── Auth ───────────────────────────────────────────────────────────────────
+  sl.registerSingleton<AuthRepository>(
+    AuthRepository(
+      userDao: sl<UserDao>(),
+      shopDao: sl<ShopDao>(),
+      authBox: Hive.box(AppConstants.authBox),
+    ),
+  );
 
-  // ── Services ──────────────────────────────────────────────────────────────
-  // Will be registered here as needed.
+  // ── Future: Other Repositories (added per phase) ───────────────────────────
+  // Phase 4:  sl.registerSingleton<ShopRepository>(...)
+  // Phase 5:  sl.registerSingleton<CategoryRepository>(...)
+  // Phase 6:  sl.registerSingleton<ProductRepository>(...)
+  // Phase 7:  sl.registerSingleton<SupplierRepository>(...)
+  // Phase 8:  sl.registerSingleton<RetailerRepository>(...)
+  // Phase 9:  sl.registerSingleton<StockRepository>(...)
+  // Phase 10: sl.registerSingleton<BillRepository>(...)
+  // Phase 11: sl.registerSingleton<PaymentRepository>(...)
+  // Phase 12: sl.registerSingleton<LedgerRepository>(...)
+  // Phase 13: sl.registerSingleton<ExpenseRepository>(...)
 }

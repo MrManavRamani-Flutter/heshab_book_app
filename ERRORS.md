@@ -122,7 +122,47 @@ These rules are based on general Flutter/Drift/Riverpod production patterns.
 
 ## ✅ Resolved Errors
 
-*None yet.*
+### ERR-001 — Duplicate Route Definition
+- **Phase**: Phase 3 — Authentication Module
+- **Date**: 2026-05-09
+- **File(s)**: `lib/config/routes/route_names.dart`
+- **Error Message**:
+  ```
+  error • The name 'shopSetup' is already defined • lib/config/routes/route_names.dart:32:23 • duplicate_definition
+  ```
+- **Root Cause**: Manually added the same constant twice while organizing route groups (Auth vs Settings).
+- **Fix Applied**: Removed the duplicate definition at the end of the file.
+- **Prevention Rule**: Always check for existing constants before adding new ones, or use a tool to sort/deduplicate constants.
+
+---
+
+### ERR-002 — Undefined Drift Companions
+- **Phase**: Phase 3 — Authentication Module
+- **Date**: 2026-05-09
+- **File(s)**: `lib/features/auth/data/repositories/auth_repository.dart`, `lib/features/auth/presentation/screens/shop_setup_screen.dart`
+- **Error Message**:
+  ```
+  error • Undefined name 'UsersCompanion' • lib/features/auth/data/repositories/auth_repository.dart:97:7 • undefined_identifier
+  error • Undefined name 'ShopsCompanion' • lib/features/auth/presentation/screens/shop_setup_screen.dart:88:9 • undefined_identifier
+  ```
+- **Root Cause**: Drift generates companion classes in the `.g.dart` file of the database. Importing only the table definition file is not enough to access companions in other layers.
+- **Fix Applied**: Imported `package:heshab_book_app/database/app_database.dart` which exports the necessary generated types.
+- **Prevention Rule**: Always import the main database file when working with Drift companions in repositories or screens.
+
+---
+
+### ERR-003 — Unnecessary Underscores in Ref.listen
+- **Phase**: Phase 3 — Authentication Module
+- **Date**: 2026-05-09
+- **File(s)**: `lib/config/routes/app_router.dart`
+- **Error Message**:
+  ```
+  info • Unnecessary use of multiple underscores • lib/config/routes/app_router.dart:24:46 • unnecessary_underscores
+  ```
+- **Root Cause**: Used `(_, __)` in a callback where the analyzer expects only one underscore or descriptive names if there are multiple arguments.
+- **Fix Applied**: Changed `(_, __)` to `(prev, next)`.
+- **Prevention Rule**: Follow Dart lint rules for private/unused variables. Use descriptive names like `(p, n)` or `(prev, next)` for riverpod listeners.
+
 
 ---
 

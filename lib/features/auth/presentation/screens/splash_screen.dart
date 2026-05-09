@@ -1,55 +1,48 @@
 // lib/features/auth/presentation/screens/splash_screen.dart
+//
+// Shows brand animation while auth state initializes.
+// Navigation is handled entirely by the GoRouter auth guard — NOT here.
 
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import '../../../../core/constants/app_colors.dart';
-import '../../../../core/constants/app_constants.dart';
-import '../../../../config/routes/route_names.dart';
 
-class SplashScreen extends ConsumerStatefulWidget {
+class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
   @override
-  ConsumerState<SplashScreen> createState() => _SplashScreenState();
+  State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends ConsumerState<SplashScreen>
+class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _fadeAnim;
   late Animation<double> _scaleAnim;
+  late Animation<double> _slideAnim;
 
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: const Duration(milliseconds: 1200),
+      duration: const Duration(milliseconds: 1400),
       vsync: this,
     );
     _fadeAnim = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeIn),
+      CurvedAnimation(
+          parent: _controller,
+          curve: const Interval(0.0, 0.6, curve: Curves.easeIn)),
     );
-    _scaleAnim = Tween<double>(begin: 0.8, end: 1).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutBack),
+    _scaleAnim = Tween<double>(begin: 0.7, end: 1).animate(
+      CurvedAnimation(
+          parent: _controller,
+          curve: const Interval(0.0, 0.7, curve: Curves.easeOutBack)),
+    );
+    _slideAnim = Tween<double>(begin: 30, end: 0).animate(
+      CurvedAnimation(
+          parent: _controller,
+          curve: const Interval(0.3, 1.0, curve: Curves.easeOut)),
     );
     _controller.forward();
-    _checkAndNavigate();
-  }
-
-  Future<void> _checkAndNavigate() async {
-    await Future.delayed(const Duration(seconds: 2));
-    if (!mounted) return;
-
-    final box = Hive.box(AppConstants.authBox);
-    final isLoggedIn = box.get(AppConstants.keyIsLoggedIn, defaultValue: false);
-
-    if (isLoggedIn) {
-      context.go(RouteNames.dashboard);
-    } else {
-      context.go(RouteNames.login);
-    }
   }
 
   @override
@@ -61,69 +54,95 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.primary,
-      body: Center(
-        child: FadeTransition(
-          opacity: _fadeAnim,
-          child: ScaleTransition(
-            scale: _scaleAnim,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Logo
-                Container(
-                  width: 100,
-                  height: 100,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(24),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.2),
-                        blurRadius: 20,
-                        offset: const Offset(0, 10),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [AppColors.primary, AppColors.primaryDark],
+          ),
+        ),
+        child: SafeArea(
+          child: Center(
+            child: FadeTransition(
+              opacity: _fadeAnim,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // ── Logo ───────────────────────────────────────────────
+                  ScaleTransition(
+                    scale: _scaleAnim,
+                    child: Container(
+                      width: 110,
+                      height: 110,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(28),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.25),
+                            blurRadius: 30,
+                            offset: const Offset(0, 12),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                  child: const Icon(
-                    Icons.menu_book_rounded,
-                    size: 60,
-                    color: AppColors.primary,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                const Text(
-                  'Heshab Book',
-                  style: TextStyle(
-                    fontFamily: 'Poppins',
-                    fontSize: 32,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Your Business, Your Numbers',
-                  style: TextStyle(
-                    fontFamily: 'Poppins',
-                    fontSize: 14,
-                    fontWeight: FontWeight.w400,
-                    color: Colors.white.withValues(alpha: 0.8),
-                  ),
-                ),
-                const SizedBox(height: 60),
-                SizedBox(
-                  width: 32,
-                  height: 32,
-                  child: CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      Colors.white.withValues(alpha: 0.7),
+                      child: const Icon(
+                        Icons.menu_book_rounded,
+                        size: 64,
+                        color: AppColors.primary,
+                      ),
                     ),
-                    strokeWidth: 2,
                   ),
-                ),
-              ],
+                  const SizedBox(height: 32),
+
+                  // ── Brand Name ─────────────────────────────────────────
+                  AnimatedBuilder(
+                    animation: _slideAnim,
+                    builder: (context, child) {
+                      return Transform.translate(
+                        offset: Offset(0, _slideAnim.value),
+                        child: child,
+                      );
+                    },
+                    child: Column(
+                      children: [
+                        const Text(
+                          'Heshab Book',
+                          style: TextStyle(
+                            fontSize: 34,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'हिसाब • हिસાબ • Accounts',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w400,
+                            color: Colors.white.withValues(alpha: 0.75),
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 72),
+
+                  // ── Loading Indicator ──────────────────────────────────
+                  SizedBox(
+                    width: 28,
+                    height: 28,
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        Colors.white.withValues(alpha: 0.6),
+                      ),
+                      strokeWidth: 2,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

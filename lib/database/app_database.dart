@@ -21,6 +21,10 @@ import 'tables/ledgers_table.dart';
 import 'tables/expenses_table.dart';
 import 'tables/sync_queue_table.dart';
 
+// DAOs
+import 'daos/user_dao.dart';
+import 'daos/shop_dao.dart';
+
 part 'app_database.g.dart';
 
 @DriftDatabase(
@@ -40,6 +44,10 @@ part 'app_database.g.dart';
     Ledgers,
     Expenses,
     SyncQueue,
+  ],
+  daos: [
+    UserDao,
+    ShopDao,
   ],
 )
 class AppDatabase extends _$AppDatabase {
