@@ -18,25 +18,40 @@ BillRepository billRepository(BillRepositoryRef ref) {
 // ── Bill List Providers ────────────────────────────────────────────────────
 
 @riverpod
-Stream<List<Bill>> shopBills(ShopBillsRef ref, {String? type}) {
+Stream<List<Bill>> shopBills(ShopBillsRef ref, {String? type, DateTime? startDate, DateTime? endDate}) {
   final activeShop = ref.watch(activeShopProvider);
   if (activeShop == null) return Stream.value([]);
   
-  return ref.watch(billRepositoryProvider).watchBills(activeShop.id, type: type);
+  return ref.watch(billRepositoryProvider).watchBills(
+    activeShop.id, 
+    type: type,
+    startDate: startDate,
+    endDate: endDate,
+  );
 }
 
 @riverpod
-Stream<List<Bill>> purchaseBills(PurchaseBillsRef ref) {
+Stream<List<Bill>> purchaseBills(PurchaseBillsRef ref, {DateTime? startDate, DateTime? endDate}) {
   final activeShop = ref.watch(activeShopProvider);
   if (activeShop == null) return Stream.value([]);
-  return ref.watch(billRepositoryProvider).watchBills(activeShop.id, type: 'purchase');
+  return ref.watch(billRepositoryProvider).watchBills(
+    activeShop.id, 
+    type: 'purchase',
+    startDate: startDate,
+    endDate: endDate,
+  );
 }
 
 @riverpod
-Stream<List<Bill>> salesBills(SalesBillsRef ref) {
+Stream<List<Bill>> salesBills(SalesBillsRef ref, {DateTime? startDate, DateTime? endDate}) {
   final activeShop = ref.watch(activeShopProvider);
   if (activeShop == null) return Stream.value([]);
-  return ref.watch(billRepositoryProvider).watchBills(activeShop.id, type: 'sales');
+  return ref.watch(billRepositoryProvider).watchBills(
+    activeShop.id, 
+    type: 'sales',
+    startDate: startDate,
+    endDate: endDate,
+  );
 }
 
 // ── Bill Detail Provider ───────────────────────────────────────────────────
@@ -50,7 +65,7 @@ Future<({Bill bill, List<BillItem> items})?> billDetail(BillDetailRef ref, int b
 
 @riverpod
 double totalSalesAmount(TotalSalesAmountRef ref) {
-  final billsAsync = ref.watch(salesBillsProvider);
+  final billsAsync = ref.watch(salesBillsProvider());
   return billsAsync.maybeWhen(
     data: (bills) => bills.fold(0.0, (sum, b) => sum + b.totalAmount),
     orElse: () => 0.0,
@@ -59,7 +74,7 @@ double totalSalesAmount(TotalSalesAmountRef ref) {
 
 @riverpod
 double totalPurchaseAmount(TotalPurchaseAmountRef ref) {
-  final billsAsync = ref.watch(purchaseBillsProvider);
+  final billsAsync = ref.watch(purchaseBillsProvider());
   return billsAsync.maybeWhen(
     data: (bills) => bills.fold(0.0, (sum, b) => sum + b.totalAmount),
     orElse: () => 0.0,

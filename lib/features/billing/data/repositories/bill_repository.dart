@@ -12,14 +12,21 @@ class BillRepository {
 
   // ── Queries ──────────────────────────────────────────────────────────────
 
-  /// Watch bills for a shop, filtered by type
-  Stream<List<Bill>> watchBills(int shopId, {String? type}) {
+  /// Watch bills for a shop, filtered by type and date
+  Stream<List<Bill>> watchBills(int shopId, {String? type, DateTime? startDate, DateTime? endDate}) {
     final query = _db.select(_db.bills)
       ..where((b) => b.shopId.equals(shopId))
       ..where((b) => b.isDeleted.equals(false));
     
     if (type != null) {
       query.where((b) => b.billType.equals(type));
+    }
+
+    if (startDate != null) {
+      query.where((b) => b.billDate.isBiggerOrEqualValue(startDate));
+    }
+    if (endDate != null) {
+      query.where((b) => b.billDate.isSmallerOrEqualValue(endDate));
     }
     
     return (query..orderBy([(b) => OrderingTerm.desc(b.billDate)])).watch();

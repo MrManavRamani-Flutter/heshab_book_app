@@ -23,7 +23,7 @@ final billRepositoryProvider = AutoDisposeProvider<BillRepository>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef BillRepositoryRef = AutoDisposeProviderRef<BillRepository>;
-String _$shopBillsHash() => r'6f9bebd4b44653b49ce10379810f7a1c5432b2a9';
+String _$shopBillsHash() => r'ecaaa8aa24a43a56b677ee5ea31934c68d8e29da';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -56,13 +56,25 @@ class ShopBillsFamily extends Family<AsyncValue<List<Bill>>> {
   const ShopBillsFamily();
 
   /// See also [shopBills].
-  ShopBillsProvider call({String? type}) {
-    return ShopBillsProvider(type: type);
+  ShopBillsProvider call({
+    String? type,
+    DateTime? startDate,
+    DateTime? endDate,
+  }) {
+    return ShopBillsProvider(
+      type: type,
+      startDate: startDate,
+      endDate: endDate,
+    );
   }
 
   @override
   ShopBillsProvider getProviderOverride(covariant ShopBillsProvider provider) {
-    return call(type: provider.type);
+    return call(
+      type: provider.type,
+      startDate: provider.startDate,
+      endDate: provider.endDate,
+    );
   }
 
   static const Iterable<ProviderOrFamily>? _dependencies = null;
@@ -83,9 +95,14 @@ class ShopBillsFamily extends Family<AsyncValue<List<Bill>>> {
 /// See also [shopBills].
 class ShopBillsProvider extends AutoDisposeStreamProvider<List<Bill>> {
   /// See also [shopBills].
-  ShopBillsProvider({String? type})
+  ShopBillsProvider({String? type, DateTime? startDate, DateTime? endDate})
     : this._internal(
-        (ref) => shopBills(ref as ShopBillsRef, type: type),
+        (ref) => shopBills(
+          ref as ShopBillsRef,
+          type: type,
+          startDate: startDate,
+          endDate: endDate,
+        ),
         from: shopBillsProvider,
         name: r'shopBillsProvider',
         debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -94,6 +111,8 @@ class ShopBillsProvider extends AutoDisposeStreamProvider<List<Bill>> {
         dependencies: ShopBillsFamily._dependencies,
         allTransitiveDependencies: ShopBillsFamily._allTransitiveDependencies,
         type: type,
+        startDate: startDate,
+        endDate: endDate,
       );
 
   ShopBillsProvider._internal(
@@ -104,9 +123,13 @@ class ShopBillsProvider extends AutoDisposeStreamProvider<List<Bill>> {
     required super.debugGetCreateSourceHash,
     required super.from,
     required this.type,
+    required this.startDate,
+    required this.endDate,
   }) : super.internal();
 
   final String? type;
+  final DateTime? startDate;
+  final DateTime? endDate;
 
   @override
   Override overrideWith(
@@ -122,6 +145,8 @@ class ShopBillsProvider extends AutoDisposeStreamProvider<List<Bill>> {
         allTransitiveDependencies: null,
         debugGetCreateSourceHash: null,
         type: type,
+        startDate: startDate,
+        endDate: endDate,
       ),
     );
   }
@@ -133,13 +158,18 @@ class ShopBillsProvider extends AutoDisposeStreamProvider<List<Bill>> {
 
   @override
   bool operator ==(Object other) {
-    return other is ShopBillsProvider && other.type == type;
+    return other is ShopBillsProvider &&
+        other.type == type &&
+        other.startDate == startDate &&
+        other.endDate == endDate;
   }
 
   @override
   int get hashCode {
     var hash = _SystemHash.combine(0, runtimeType.hashCode);
     hash = _SystemHash.combine(hash, type.hashCode);
+    hash = _SystemHash.combine(hash, startDate.hashCode);
+    hash = _SystemHash.combine(hash, endDate.hashCode);
 
     return _SystemHash.finish(hash);
   }
@@ -150,6 +180,12 @@ class ShopBillsProvider extends AutoDisposeStreamProvider<List<Bill>> {
 mixin ShopBillsRef on AutoDisposeStreamProviderRef<List<Bill>> {
   /// The parameter `type` of this provider.
   String? get type;
+
+  /// The parameter `startDate` of this provider.
+  DateTime? get startDate;
+
+  /// The parameter `endDate` of this provider.
+  DateTime? get endDate;
 }
 
 class _ShopBillsProviderElement
@@ -159,42 +195,283 @@ class _ShopBillsProviderElement
 
   @override
   String? get type => (origin as ShopBillsProvider).type;
+  @override
+  DateTime? get startDate => (origin as ShopBillsProvider).startDate;
+  @override
+  DateTime? get endDate => (origin as ShopBillsProvider).endDate;
 }
 
-String _$purchaseBillsHash() => r'd6433771a53ef9b6fe81425da44e9e326f79c787';
+String _$purchaseBillsHash() => r'898e7d8b14832ccd52e4c6def72c80e8385c915b';
 
 /// See also [purchaseBills].
 @ProviderFor(purchaseBills)
-final purchaseBillsProvider = AutoDisposeStreamProvider<List<Bill>>.internal(
-  purchaseBills,
-  name: r'purchaseBillsProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$purchaseBillsHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+const purchaseBillsProvider = PurchaseBillsFamily();
+
+/// See also [purchaseBills].
+class PurchaseBillsFamily extends Family<AsyncValue<List<Bill>>> {
+  /// See also [purchaseBills].
+  const PurchaseBillsFamily();
+
+  /// See also [purchaseBills].
+  PurchaseBillsProvider call({DateTime? startDate, DateTime? endDate}) {
+    return PurchaseBillsProvider(startDate: startDate, endDate: endDate);
+  }
+
+  @override
+  PurchaseBillsProvider getProviderOverride(
+    covariant PurchaseBillsProvider provider,
+  ) {
+    return call(startDate: provider.startDate, endDate: provider.endDate);
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'purchaseBillsProvider';
+}
+
+/// See also [purchaseBills].
+class PurchaseBillsProvider extends AutoDisposeStreamProvider<List<Bill>> {
+  /// See also [purchaseBills].
+  PurchaseBillsProvider({DateTime? startDate, DateTime? endDate})
+    : this._internal(
+        (ref) => purchaseBills(
+          ref as PurchaseBillsRef,
+          startDate: startDate,
+          endDate: endDate,
+        ),
+        from: purchaseBillsProvider,
+        name: r'purchaseBillsProvider',
+        debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+            ? null
+            : _$purchaseBillsHash,
+        dependencies: PurchaseBillsFamily._dependencies,
+        allTransitiveDependencies:
+            PurchaseBillsFamily._allTransitiveDependencies,
+        startDate: startDate,
+        endDate: endDate,
+      );
+
+  PurchaseBillsProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.startDate,
+    required this.endDate,
+  }) : super.internal();
+
+  final DateTime? startDate;
+  final DateTime? endDate;
+
+  @override
+  Override overrideWith(
+    Stream<List<Bill>> Function(PurchaseBillsRef provider) create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: PurchaseBillsProvider._internal(
+        (ref) => create(ref as PurchaseBillsRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        startDate: startDate,
+        endDate: endDate,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeStreamProviderElement<List<Bill>> createElement() {
+    return _PurchaseBillsProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is PurchaseBillsProvider &&
+        other.startDate == startDate &&
+        other.endDate == endDate;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, startDate.hashCode);
+    hash = _SystemHash.combine(hash, endDate.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-typedef PurchaseBillsRef = AutoDisposeStreamProviderRef<List<Bill>>;
-String _$salesBillsHash() => r'fcabb251c97fda96ca6364bb93eeabdd5df42cfe';
+mixin PurchaseBillsRef on AutoDisposeStreamProviderRef<List<Bill>> {
+  /// The parameter `startDate` of this provider.
+  DateTime? get startDate;
+
+  /// The parameter `endDate` of this provider.
+  DateTime? get endDate;
+}
+
+class _PurchaseBillsProviderElement
+    extends AutoDisposeStreamProviderElement<List<Bill>>
+    with PurchaseBillsRef {
+  _PurchaseBillsProviderElement(super.provider);
+
+  @override
+  DateTime? get startDate => (origin as PurchaseBillsProvider).startDate;
+  @override
+  DateTime? get endDate => (origin as PurchaseBillsProvider).endDate;
+}
+
+String _$salesBillsHash() => r'9f690b4fd5ea14ebb183af61b8bb33dcddad6cdf';
 
 /// See also [salesBills].
 @ProviderFor(salesBills)
-final salesBillsProvider = AutoDisposeStreamProvider<List<Bill>>.internal(
-  salesBills,
-  name: r'salesBillsProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$salesBillsHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+const salesBillsProvider = SalesBillsFamily();
+
+/// See also [salesBills].
+class SalesBillsFamily extends Family<AsyncValue<List<Bill>>> {
+  /// See also [salesBills].
+  const SalesBillsFamily();
+
+  /// See also [salesBills].
+  SalesBillsProvider call({DateTime? startDate, DateTime? endDate}) {
+    return SalesBillsProvider(startDate: startDate, endDate: endDate);
+  }
+
+  @override
+  SalesBillsProvider getProviderOverride(
+    covariant SalesBillsProvider provider,
+  ) {
+    return call(startDate: provider.startDate, endDate: provider.endDate);
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'salesBillsProvider';
+}
+
+/// See also [salesBills].
+class SalesBillsProvider extends AutoDisposeStreamProvider<List<Bill>> {
+  /// See also [salesBills].
+  SalesBillsProvider({DateTime? startDate, DateTime? endDate})
+    : this._internal(
+        (ref) => salesBills(
+          ref as SalesBillsRef,
+          startDate: startDate,
+          endDate: endDate,
+        ),
+        from: salesBillsProvider,
+        name: r'salesBillsProvider',
+        debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+            ? null
+            : _$salesBillsHash,
+        dependencies: SalesBillsFamily._dependencies,
+        allTransitiveDependencies: SalesBillsFamily._allTransitiveDependencies,
+        startDate: startDate,
+        endDate: endDate,
+      );
+
+  SalesBillsProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.startDate,
+    required this.endDate,
+  }) : super.internal();
+
+  final DateTime? startDate;
+  final DateTime? endDate;
+
+  @override
+  Override overrideWith(
+    Stream<List<Bill>> Function(SalesBillsRef provider) create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: SalesBillsProvider._internal(
+        (ref) => create(ref as SalesBillsRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        startDate: startDate,
+        endDate: endDate,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeStreamProviderElement<List<Bill>> createElement() {
+    return _SalesBillsProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is SalesBillsProvider &&
+        other.startDate == startDate &&
+        other.endDate == endDate;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, startDate.hashCode);
+    hash = _SystemHash.combine(hash, endDate.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-typedef SalesBillsRef = AutoDisposeStreamProviderRef<List<Bill>>;
+mixin SalesBillsRef on AutoDisposeStreamProviderRef<List<Bill>> {
+  /// The parameter `startDate` of this provider.
+  DateTime? get startDate;
+
+  /// The parameter `endDate` of this provider.
+  DateTime? get endDate;
+}
+
+class _SalesBillsProviderElement
+    extends AutoDisposeStreamProviderElement<List<Bill>>
+    with SalesBillsRef {
+  _SalesBillsProviderElement(super.provider);
+
+  @override
+  DateTime? get startDate => (origin as SalesBillsProvider).startDate;
+  @override
+  DateTime? get endDate => (origin as SalesBillsProvider).endDate;
+}
+
 String _$billDetailHash() => r'4cd7b1d8024bbea73591f7ac9ec77b8b0916b0e1';
 
 /// See also [billDetail].
@@ -322,7 +599,7 @@ class _BillDetailProviderElement
   int get billId => (origin as BillDetailProvider).billId;
 }
 
-String _$totalSalesAmountHash() => r'e7412607a83e1c05b3f68dfb5ea0aaf34eb33e73';
+String _$totalSalesAmountHash() => r'518fa3fe2867b0abdafbea64862d28f68f3af9f3';
 
 /// See also [totalSalesAmount].
 @ProviderFor(totalSalesAmount)
@@ -340,7 +617,7 @@ final totalSalesAmountProvider = AutoDisposeProvider<double>.internal(
 // ignore: unused_element
 typedef TotalSalesAmountRef = AutoDisposeProviderRef<double>;
 String _$totalPurchaseAmountHash() =>
-    r'40a408e6c3fce1dc4fe52fde3fbd34904b0e300c';
+    r'bbe2578667ba96fcb08d7d129d818dbd80d83678';
 
 /// See also [totalPurchaseAmount].
 @ProviderFor(totalPurchaseAmount)

@@ -24,8 +24,8 @@
 | 11 | Payment Management Module | ✅ Done |
 | 12 | Ledger System | ✅ Done |
 | 13 | Expense Management Module | ✅ Done |
-| 14 | Profit & Loss Module | 🟡 Next Up |
-| 15 | Dashboard Module | ⬜ Pending |
+| 14 | Profit & Loss Module | ✅ Done |
+| 15 | Dashboard Module | 🟡 Next Up |
 | 16 | Reports Module | ⬜ Pending |
 | 17 | Settings & Profile | ⬜ Pending |
 | 18 | Cloud Sync (Future) | ⬜ Future |
@@ -518,14 +518,32 @@ Screens to route:
 
 ---
 
-## Phase 14 — Profit & Loss Module 🟡 NEXT UP
+## Phase 14 — Profit & Loss Module ✅ COMPLETE
 
-- [ ] P&L Summary Screen
-- [ ] Gross Profit calculation
-- [ ] Net Profit calculation (minus expenses)
-- [ ] Monthly Profit graph
-- [ ] Product-wise Profit
-- [ ] `ProfitProvider`
+> Completed: 2026-05-10
+
+### 14.1 — Business Logic ✅
+- [x] `ProfitLossReport` implemented as a complex Riverpod notifier.
+- [x] **Consolidated Analysis**: Merges `Sales`, `Purchases`, and `Expenses` into a single performance snapshot.
+- [x] **Calculated KPIs**:
+    - Gross Profit (Sales - Purchase)
+    - Net Profit (Gross Profit - Expenses)
+    - Profit Margin %
+- [x] **Temporal Support**: Full support for date-filtered P&L (Monthly, Weekly, Custom).
+
+### 14.2 — Dependency Updates ✅
+- [x] Updated `BillRepository` and `BillProviders` to support date-range filtering for comprehensive report generation.
+
+---
+
+## Phase 15 — Dashboard Module 🟡 NEXT UP
+
+- [ ] Shop Selection UI
+- [ ] Stats Cards (Today's Sales, Total Stock, Out of Stock count)
+- [ ] Quick Action Shortcuts
+- [ ] Recent Activity Feed
+- [ ] Profit/Expense Chart widgets
+- [ ] `DashboardProvider`
 
 ---
 
