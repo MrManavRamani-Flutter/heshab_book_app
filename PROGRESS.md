@@ -17,8 +17,8 @@
 | 4 | Shop Management Module | ✅ Done |
 | 5 | Category / Sub-Category / Unit Module | ✅ Done |
 | 6 | Product Management Module | ✅ Done |
-| 7 | Supplier Management Module | 🟡 Next Up |
-| 8 | Retailer / Customer Management Module | ⬜ Pending |
+| 7 | Supplier Management Module | ✅ Done |
+| 8 | Retailer / Customer Management Module | 🟡 Next Up |
 | 9 | Stock Management Module | ⬜ Pending |
 | 10 | Billing System (Purchase + Sales + Return) | ⬜ Pending |
 | 11 | Payment Management Module | ⬜ Pending |
@@ -380,17 +380,26 @@ Screens to route:
 
 ---
 
-## Phase 7 — Supplier Management Module ⬜
+## Phase 7 — Supplier Management Module ✅ COMPLETE
 
-- [ ] Supplier List Screen
-- [ ] Add/Edit Supplier Screen
-- [ ] Supplier Detail Screen (with ledger summary)
-- [ ] `SupplierProvider`
-- [ ] `SupplierRepository`
+> Completed: 2026-05-09
+
+### 7.1 — Data Layer ✅
+- [x] `SupplierRepository` implemented (CRUD).
+- [x] **RULE-007 Violation Prevention**: `createSupplier` automatically creates an adjustment `Ledger` entry if an `openingBalance` is provided.
+- [x] Atomic updates for `currentBalance` on creation.
+
+### 7.2 — Domain Layer (Riverpod) ✅
+- [x] `shopSuppliersProvider`: Stream of all active suppliers for the shop.
+- [x] `searchSuppliersProvider(query)`: Reactive search by name, shop name, or phone.
+- [x] `totalSupplierOwedProvider`: Selector to calculate the cumulative debt across all vendors.
+
+### 7.3 — DI Registration ✅
+- [x] `SupplierRepository` registered in `service_locator.dart`.
 
 ---
 
-## Phase 8 — Retailer / Customer Management Module ⬜
+## Phase 8 — Retailer / Customer Management Module 🟡 NEXT UP
 
 - [ ] Retailer List Screen
 - [ ] Add/Edit Retailer Screen
