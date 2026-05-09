@@ -22,8 +22,8 @@
 | 9 | Stock Management Module | ✅ Done |
 | 10 | Billing System (Purchase + Sales + Return) | ✅ Done |
 | 11 | Payment Management Module | ✅ Done |
-| 12 | Ledger System | 🟡 Next Up |
-| 13 | Expense Management Module | ⬜ Pending |
+| 12 | Ledger System | ✅ Done |
+| 13 | Expense Management Module | 🟡 Next Up |
 | 14 | Profit & Loss Module | ⬜ Pending |
 | 15 | Dashboard Module | ⬜ Pending |
 | 16 | Reports Module | ⬜ Pending |
@@ -480,18 +480,26 @@ Screens to route:
 
 ---
 
-## Phase 12 — Ledger System 🟡 NEXT UP
+## Phase 12 — Ledger System ✅ COMPLETE
 
-- [ ] Ledger View per Supplier
-- [ ] Ledger View per Retailer
-- [ ] Debit/Credit/Balance display
-- [ ] Date range filter
-- [ ] `LedgerProvider`
-- [ ] `LedgerRepository`
+> Completed: 2026-05-10
+
+### 12.1 — Data Layer ✅
+- [x] `LedgerRepository` implemented for viewing unified party statements.
+- [x] **Statement Reconstruction**: Ability to fetch bills and payments in a chronological sequence.
+- [x] **Date Filtering**: Full support for date-range specific statements (e.g., Monthly Ledger).
+- [x] Optimized summary calculation (Total Debit, Total Credit, Closing Balance).
+
+### 12.2 — Domain Layer (Riverpod) ✅
+- [x] `partyLedgerProvider`: Watch the live stream of a party's financial statement.
+- [x] `ledgerSummaryProvider`: Future provider for instant financial snapshots of any account.
+
+### 12.3 — DI Registration ✅
+- [x] `LedgerRepository` registered in `service_locator.dart`.
 
 ---
 
-## Phase 13 — Expense Management Module ⬜
+## Phase 13 — Expense Management Module 🟡 NEXT UP
 
 - [ ] Expense List Screen
 - [ ] Add Expense Screen
