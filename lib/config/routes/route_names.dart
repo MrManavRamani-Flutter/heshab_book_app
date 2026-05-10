@@ -28,5 +28,6 @@ class RouteNames {
   static const String ledger = '/ledger';
   static const String reports = '/reports';
   static const String settings = '/settings';
+  static const String cloudSync = '/settings/sync';
   static const String profile = '/settings/profile';
 }

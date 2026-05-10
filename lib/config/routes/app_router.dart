@@ -21,6 +21,7 @@ import '../../features/inventory/presentation/screens/product_list_screen.dart';
 import '../../features/inventory/presentation/screens/product_form_screen.dart';
 import '../../features/parties/presentation/screens/parties_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
+import '../../features/settings/presentation/screens/cloud_sync_screen.dart';
 import '../../core/widgets/main_screen.dart';
 
 // ── Router Notifier (bridges Riverpod → GoRouter refresh) ─────────────────
@@ -169,6 +170,12 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: RouteNames.settings,
                 builder: (context, state) => const SettingsScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'sync',
+                    builder: (context, state) => const CloudSyncScreen(),
+                  ),
+                ],
               ),
             ],
           ),
