@@ -105,6 +105,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           prefixIcon: Icons.email_outlined,
                           controller: _mobileController,
                           enabled: !isLoading,
+                          validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter your email or mobile' : null,
                         ),
                         const SizedBox(height: 16),
                         AuthFormField(
@@ -113,6 +114,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           isPassword: true,
                           controller: _passwordController,
                           enabled: !isLoading,
+                          validator: (v) => (v == null || v.isEmpty) ? 'Enter your password' : null,
                         ),
                       ],
                     ),
@@ -133,7 +135,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       minimumSize: const Size(double.infinity, 56),
                     ),
                     child: isLoading 
-                        ? const CircularProgressIndicator(color: Colors.white)
+                        ? const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                          )
                         : const Text('LOGIN'),
                   ),
 
@@ -165,7 +171,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.red.withValues(alpha: 0.2)),
       ),
-      child: Text(message, style: const TextStyle(color: Colors.redAccent)),
+      child: Row(
+        children: [
+          const Icon(Icons.error_outline, color: Colors.redAccent, size: 20),
+          const SizedBox(width: 12),
+          Expanded(child: Text(message, style: const TextStyle(color: Colors.redAccent))),
+        ],
+      ),
     );
   }
 }

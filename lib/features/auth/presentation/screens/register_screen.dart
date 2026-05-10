@@ -37,8 +37,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   Future<void> _onRegister() async {
     if (!_formKey.currentState!.validate()) return;
+    
     FocusScope.of(context).unfocus();
     ref.read(authProvider.notifier).clearError();
+    
     await ref.read(authProvider.notifier).register(
           name: _nameController.text.trim(),
           mobile: _mobileController.text.trim(),
@@ -64,7 +66,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               _buildHeader(context),
               Expanded(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                   child: Form(
                     key: _formKey,
                     child: Column(
@@ -74,44 +76,87 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           _buildErrorBanner(errorMsg),
                           const SizedBox(height: 24),
                         ],
+                        
+                        // Full Name
                         AuthFormField(
                           label: 'Full Name',
                           prefixIcon: Icons.person_outline,
                           controller: _nameController,
                           enabled: !isLoading,
+                          validator: (v) {
+                            if (v == null || v.trim().isEmpty) return 'Enter your full name';
+                            if (v.trim().length < 2) return 'Name is too short';
+                            return null;
+                          },
                         ),
                         const SizedBox(height: 16),
+
+                        // Mobile Number
                         AuthFormField(
                           label: 'Mobile Number',
                           prefixIcon: Icons.phone_android_outlined,
                           keyboardType: TextInputType.phone,
                           controller: _mobileController,
                           enabled: !isLoading,
+                          validator: (v) {
+                            if (v == null || v.trim().isEmpty) return 'Enter mobile number';
+                            if (!RegExp(r'^[0-9]{10}$').hasMatch(v.trim())) {
+                              return 'Enter a valid 10-digit mobile number';
+                            }
+                            return null;
+                          },
                         ),
                         const SizedBox(height: 16),
+
+                        // Email
                         AuthFormField(
                           label: 'Email (Optional)',
                           prefixIcon: Icons.email_outlined,
                           keyboardType: TextInputType.emailAddress,
                           controller: _emailController,
                           enabled: !isLoading,
+                          validator: (v) {
+                            if (v != null && v.trim().isNotEmpty) {
+                              if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(v.trim())) {
+                                return 'Enter a valid email address';
+                              }
+                            }
+                            return null;
+                          },
                         ),
                         const SizedBox(height: 16),
+
+                        // Password
                         AuthFormField(
                           label: 'Password',
                           prefixIcon: Icons.lock_outline,
                           isPassword: true,
                           controller: _passwordController,
                           enabled: !isLoading,
+                          validator: (v) {
+                            if (v == null || v.isEmpty) return 'Enter a password';
+                            if (v.length < 6) return 'Minimum 6 characters required';
+                            return null;
+                          },
                         ),
                         const SizedBox(height: 16),
+
+                        // Confirm Password
                         AuthFormField(
                           label: 'Confirm Password',
                           prefixIcon: Icons.lock_clock_outlined,
                           isPassword: true,
                           controller: _confirmPasswordController,
                           enabled: !isLoading,
+                          textInputAction: TextInputAction.done,
+                          onEditingComplete: _onRegister,
+                          validator: (v) {
+                            if (v == null || v.isEmpty) return 'Confirm your password';
+                            if (v != _passwordController.text) return 'Passwords do not match';
+                            return null;
+                          },
                         ),
+                        
                         const SizedBox(height: 32),
                         ElevatedButton(
                           onPressed: isLoading ? null : _onRegister,
@@ -120,7 +165,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                             backgroundColor: AppColors.primary,
                           ),
                           child: isLoading 
-                              ? const CircularProgressIndicator(color: Colors.white)
+                              ? const SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                                )
                               : const Text('CREATE ACCOUNT'),
                         ),
                         const SizedBox(height: 24),
@@ -134,6 +183,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                             ),
                           ],
                         ),
+                        const SizedBox(height: 32),
                       ],
                     ),
                   ),
@@ -182,7 +232,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.red.withValues(alpha: 0.2)),
       ),
-      child: Text(message, style: const TextStyle(color: Colors.redAccent)),
+      child: Row(
+        children: [
+          const Icon(Icons.error_outline, color: Colors.redAccent, size: 20),
+          const SizedBox(width: 12),
+          Expanded(child: Text(message, style: const TextStyle(color: Colors.redAccent))),
+        ],
+      ),
     );
   }
 }
