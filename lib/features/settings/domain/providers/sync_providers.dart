@@ -11,22 +11,26 @@ class SyncState {
   final SyncStatus status;
   final String? errorMessage;
   final DateTime? lastSync;
+  final String? userEmail; // Added to track signed-in Google account
 
   SyncState({
     this.status = SyncStatus.idle,
     this.errorMessage,
     this.lastSync,
+    this.userEmail,
   });
 
   SyncState copyWith({
     SyncStatus? status,
     String? errorMessage,
     DateTime? lastSync,
+    String? userEmail,
   }) {
     return SyncState(
       status: status ?? this.status,
       errorMessage: errorMessage ?? this.errorMessage,
       lastSync: lastSync ?? this.lastSync,
+      userEmail: userEmail ?? this.userEmail,
     );
   }
 }
@@ -39,6 +43,22 @@ class SyncNotifier extends StateNotifier<SyncState> {
   final SyncRepository _repository;
   final Ref _ref;
 
+  Future<void> connectGoogle() async {
+    state = state.copyWith(status: SyncStatus.syncing);
+    try {
+      final driveApi = await _repository.getDriveApi();
+      if (driveApi != null) {
+        // If login successful, get the email from the singleton
+        final email = _repository.currentUserEmail;
+        state = state.copyWith(status: SyncStatus.idle, userEmail: email, errorMessage: null);
+      } else {
+        state = state.copyWith(status: SyncStatus.idle, errorMessage: 'Sign-In cancelled');
+      }
+    } catch (e) {
+      state = state.copyWith(status: SyncStatus.error, errorMessage: e.toString());
+    }
+  }
+
   Future<void> performBackup() async {
     final authState = _ref.read(authProvider);
     if (authState is! AuthAuthenticated) {
@@ -48,7 +68,6 @@ class SyncNotifier extends StateNotifier<SyncState> {
 
     state = state.copyWith(status: SyncStatus.syncing);
     try {
-      // Direct backup using service account (No login required)
       await _repository.backupDatabase(authState.user.id.toString());
       state = state.copyWith(status: SyncStatus.success, lastSync: DateTime.now(), errorMessage: null);
     } catch (e) {
@@ -70,6 +89,11 @@ class SyncNotifier extends StateNotifier<SyncState> {
     } catch (e) {
       state = state.copyWith(status: SyncStatus.error, errorMessage: e.toString());
     }
+  }
+
+  Future<void> signOut() async {
+    await _repository.signOut();
+    state = state.copyWith(userEmail: null, status: SyncStatus.idle, errorMessage: null);
   }
 }
 

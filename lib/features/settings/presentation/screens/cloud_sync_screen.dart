@@ -14,6 +14,7 @@ class CloudSyncScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final syncState = ref.watch(syncProvider);
     final syncNotifier = ref.read(syncProvider.notifier);
+    final isConnected = syncState.userEmail != null;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Admin Cloud Sync')),
@@ -22,63 +23,40 @@ class CloudSyncScreen extends ConsumerWidget {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            GlassCard(
-              child: Column(
-                children: [
-                  Icon(
-                    syncState.status == SyncStatus.error ? Icons.warning_amber_rounded : Icons.cloud_done,
-                    size: 64,
-                    color: syncState.status == SyncStatus.error ? Colors.orange : AppColors.primary,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    syncState.status == SyncStatus.syncing 
-                        ? 'Processing...' 
-                        : (syncState.status == SyncStatus.error ? 'Action Required' : 'Direct Sync Active'),
-                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    syncState.errorMessage ?? 'Your data is automatically synced to the central admin vault.',
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(color: AppColors.textMuted),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 32),
+            // 1. Google Account Connection Card
+            _buildConnectionCard(syncState, syncNotifier),
             
-            // Backup Tile
+            const SizedBox(height: 24),
+            
+            // 2. Backup Tile (Enabled only if connected)
             _buildActionTile(
               title: 'Backup to Cloud',
               subtitle: syncState.lastSync != null 
                   ? 'Last: ${DateFormat('dd MMM, hh:mm a').format(syncState.lastSync!)}'
                   : 'No backup found',
               icon: Icons.backup_outlined,
-              onPressed: syncState.status == SyncStatus.syncing 
-                  ? null 
-                  : () => syncNotifier.performBackup(),
-              isLoading: syncState.status == SyncStatus.syncing,
+              isEnabled: isConnected && syncState.status != SyncStatus.syncing,
+              onPressed: () => syncNotifier.performBackup(),
+              isLoading: syncState.status == SyncStatus.syncing && !isConnected, // simplified check
               buttonText: 'Sync Now',
             ),
             
             const SizedBox(height: 16),
             
-            // Restore Tile
+            // 3. Restore Tile (Enabled only if connected)
             _buildActionTile(
               title: 'Restore from Cloud',
               subtitle: 'Download your latest cloud snapshot',
               icon: Icons.settings_backup_restore_outlined,
-              onPressed: syncState.status == SyncStatus.syncing 
-                  ? null 
-                  : () => _showRestoreConfirm(context, syncNotifier),
-              isLoading: syncState.status == SyncStatus.syncing,
+              isEnabled: isConnected && syncState.status != SyncStatus.syncing,
+              onPressed: () => _showRestoreConfirm(context, syncNotifier),
+              isLoading: false, // Restore has its own confirm dialog
               buttonText: 'Restore',
             ),
             
             const Spacer(),
             const Text(
-              '🔒 Secured via Enterprise Service Account',
+              '🔒 Secure Cloud Sync via Personal Drive',
               style: TextStyle(color: AppColors.textMuted, fontSize: 10),
             ),
             const SizedBox(height: 16),
@@ -88,34 +66,107 @@ class CloudSyncScreen extends ConsumerWidget {
     );
   }
 
+  Widget _buildConnectionCard(SyncState state, SyncNotifier notifier) {
+    final isConnected = state.userEmail != null;
+    
+    return GlassCard(
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: (isConnected ? Colors.green : Colors.orange).withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  isConnected ? Icons.account_circle : Icons.warning_amber_rounded,
+                  color: isConnected ? Colors.green : Colors.orange,
+                  size: 32,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      isConnected ? 'Google Account Connected' : 'Account Required',
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    ),
+                    Text(
+                      isConnected ? state.userEmail! : 'Connect your account to enable sync',
+                      style: const TextStyle(color: AppColors.textMuted, fontSize: 13),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: state.status == SyncStatus.syncing 
+                  ? null 
+                  : (isConnected ? () => notifier.signOut() : () => notifier.connectGoogle()),
+              icon: state.status == SyncStatus.syncing 
+                  ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                  : Icon(isConnected ? Icons.logout : Icons.login),
+              label: Text(isConnected ? 'Disconnect Account' : 'Connect Google Account'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: isConnected ? Colors.red.withValues(alpha: 0.1) : AppColors.primary,
+                foregroundColor: isConnected ? Colors.red : Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+            ),
+          ),
+          if (state.errorMessage != null && !isConnected) ...[
+            const SizedBox(height: 12),
+            Text(
+              state.errorMessage!,
+              style: const TextStyle(color: Colors.red, fontSize: 12),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
   Widget _buildActionTile({
     required String title,
     required String subtitle,
     required IconData icon,
     required VoidCallback? onPressed,
+    required bool isEnabled,
     required bool isLoading,
     required String buttonText,
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.surface.withValues(alpha: 0.5),
+        color: AppColors.surface.withValues(alpha: isEnabled ? 0.5 : 0.2),
         borderRadius: BorderRadius.circular(16),
       ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        leading: Icon(icon, color: AppColors.primary),
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Text(subtitle, style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
-        trailing: ElevatedButton(
-          onPressed: onPressed,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primary.withValues(alpha: 0.2),
-            foregroundColor: AppColors.primary,
-            elevation: 0,
+      child: Opacity(
+        opacity: isEnabled ? 1.0 : 0.5,
+        child: ListTile(
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          leading: Icon(icon, color: AppColors.primary),
+          title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+          subtitle: Text(subtitle, style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
+          trailing: ElevatedButton(
+            onPressed: isEnabled ? onPressed : null,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary.withValues(alpha: 0.2),
+              foregroundColor: AppColors.primary,
+              elevation: 0,
+            ),
+            child: isLoading 
+                ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                : Text(buttonText),
           ),
-          child: isLoading 
-              ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
-              : Text(buttonText),
         ),
       ),
     );

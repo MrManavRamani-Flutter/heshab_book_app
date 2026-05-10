@@ -13,6 +13,15 @@ class SyncRepository {
     drive.DriveApi.driveFileScope,
   ];
 
+  // Store the email manually since v7.2.0 removed currentUser getter
+  String? _currentUserEmail;
+
+  /// Getter for current signed in user email
+  String? get currentUserEmail => _currentUserEmail;
+
+  /// Public getter to trigger sign in and get Drive API
+  Future<drive.DriveApi?> getDriveApi() => _getDriveApi();
+
   /// Helper to get an authenticated Drive API client
   Future<drive.DriveApi?> _getDriveApi() async {
     try {
@@ -26,11 +35,13 @@ class SyncRepository {
         scopeHint: _scopes,
       );
 
-      // 3. Request Authorization for Drive scopes
-      // returns a GoogleSignInClientAuthorization
+      // 3. Store the email for the UI
+      _currentUserEmail = account.email;
+
+      // 4. Request Authorization for Drive scopes
       final authResult = await account.authorizationClient.authorizeScopes(_scopes);
 
-      // 4. Use the NEW authClient extension method on the authResult
+      // 5. Use the authClient extension method
       final httpClient = authResult.authClient(scopes: _scopes);
 
       return drive.DriveApi(httpClient);
@@ -132,5 +143,6 @@ class SyncRepository {
 
   Future<void> signOut() async {
     await GoogleSignIn.instance.signOut();
+    _currentUserEmail = null;
   }
 }

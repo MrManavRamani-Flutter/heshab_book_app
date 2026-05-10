@@ -68,13 +68,18 @@ class _HeshabBookAppState extends ConsumerState<HeshabBookApp> {
       minTextAdapt: true,
       splitScreenMode: true,
       builder: (context, child) {
-        return MaterialApp.router(
-          title: AppConstants.appName,
-          debugShowCheckedModeBanner: false,
-          theme: AppTheme.darkTheme, // Force premium dark for now as requested
-          darkTheme: AppTheme.darkTheme,
-          themeMode: themeMode,
-          routerConfig: router,
+        return GestureDetector(
+          onTap: () {
+            FocusScope.of(context).unfocus();
+          },
+          child: MaterialApp.router(
+            title: AppConstants.appName,
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.darkTheme, // Force premium dark for now as requested
+            darkTheme: AppTheme.darkTheme,
+            themeMode: themeMode,
+            routerConfig: router,
+          ),
         );
       },
     );
