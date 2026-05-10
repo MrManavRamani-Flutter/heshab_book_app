@@ -19,6 +19,9 @@ import '../../features/dashboard/presentation/screens/dashboard_screen.dart';
 import '../../features/billing/presentation/screens/billing_screen.dart';
 import '../../features/inventory/presentation/screens/product_list_screen.dart';
 import '../../features/inventory/presentation/screens/product_form_screen.dart';
+import '../../features/parties/presentation/screens/parties_screen.dart';
+import '../../features/settings/presentation/screens/settings_screen.dart';
+import '../../core/widgets/main_screen.dart';
 
 // ── Router Notifier (bridges Riverpod → GoRouter refresh) ─────────────────
 
@@ -113,21 +116,63 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: RouteNames.shopSetup,
         builder: (context, state) => const ShopSetupScreen(),
       ),
-      GoRoute(
-        path: RouteNames.dashboard,
-        builder: (context, state) => const DashboardScreen(),
-      ),
-      GoRoute(
-        path: RouteNames.billsCreate,
-        builder: (context, state) => const BillingScreen(),
-      ),
-      GoRoute(
-        path: RouteNames.products,
-        builder: (context, state) => const ProductListScreen(),
-      ),
-      GoRoute(
-        path: RouteNames.productsAdd,
-        builder: (context, state) => const ProductFormScreen(),
+
+      // ── Main Shell ───────────────────────────────────────────────────────
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) => MainScreen(navigationShell: navigationShell),
+        branches: [
+          // Dashboard
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RouteNames.dashboard,
+                builder: (context, state) => const DashboardScreen(),
+              ),
+            ],
+          ),
+          // Inventory
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RouteNames.products,
+                builder: (context, state) => const ProductListScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'add', // Relative to /products
+                    builder: (context, state) => const ProductFormScreen(),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          // Billing
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RouteNames.billsCreate,
+                builder: (context, state) => const BillingScreen(),
+              ),
+            ],
+          ),
+          // Parties
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RouteNames.retailers, // Use retailers as main parties tab
+                builder: (context, state) => const PartiesScreen(),
+              ),
+            ],
+          ),
+          // Settings
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RouteNames.settings,
+                builder: (context, state) => const SettingsScreen(),
+              ),
+            ],
+          ),
+        ],
       ),
     ],
 
