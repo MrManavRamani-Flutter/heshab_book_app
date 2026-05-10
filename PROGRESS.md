@@ -636,67 +636,8 @@ Screens to route:
 # 🚀 Project Status: Backend Core Complete
 
 The **Heshab Book ERP** backend is now production-ready. All architectural patterns (Clean Architecture, RULE-001 to RULE-009) have been strictly followed. The system is ready for the UI layer to be fully developed on top of these robust foundations.
-- [ ] Total Payable
-- [ ] Monthly Profit
-- [ ] Expense Count
-- [ ] Low Stock Alerts
-
 ---
 
-## Phase 16 — Reports Module ⬜
-
-- [ ] Sales Report (date range)
-- [ ] Purchase Report (date range)
-- [ ] Profit Report
-- [ ] Expense Report
-- [ ] Stock Report
-- [ ] Low Stock Report
-- [ ] Customer Ledger Report
-- [ ] Supplier Ledger Report
-- [ ] PDF export (future)
-- [ ] Excel export (future)
-
----
-
-## Phase 17 — Settings & Profile ⬜
-
-- [ ] User Profile Edit
-- [ ] Shop Settings
-- [ ] Unit Defaults
-- [ ] App Theme (Light/Dark)
-- [ ] Language (future)
-- [ ] Backup/Restore (future)
-
----
-
-## Phase 18 — Cloud Sync (Future) 🔵
-
-- [ ] API client (Dio)
-- [ ] Sync queue processing
-- [ ] Conflict resolution
-- [ ] Real-time sync
-
----
-
-## Phase 19 — QA & Testing ⬜
-
-- [ ] Unit tests for all repositories
-- [ ] Widget tests for key screens
-- [ ] Integration tests for billing flow
-- [ ] Performance test (large dataset)
-- [ ] Edge case testing
-
----
-
-## Phase 20 — Release & Deployment ⬜
-
-- [ ] App icon
-- [ ] Splash screen
-- [ ] Android release APK
-- [ ] iOS release IPA
-- [ ] Store listing (future)
-
----
 
 ## 📅 Build Order (From README)
 
