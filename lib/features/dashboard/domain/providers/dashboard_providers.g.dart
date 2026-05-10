@@ -6,7 +6,7 @@ part of 'dashboard_providers.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$dashboardStatsHash() => r'0b8740019642a276665dd163087c66d16c260b32';
+String _$dashboardStatsHash() => r'4d1e1284efdb411cfb5eccaff261be2010b2f50d';
 
 /// See also [DashboardStats].
 @ProviderFor(DashboardStats)
@@ -20,6 +20,7 @@ final dashboardStatsProvider =
         double pendingReceivables,
         double pendingPayables,
         int totalProducts,
+        double stockValuation,
       })
     >.internal(
       DashboardStats.new,
@@ -40,6 +41,7 @@ typedef _$DashboardStats =
         double pendingReceivables,
         double pendingPayables,
         int totalProducts,
+        double stockValuation,
       })
     >;
 // ignore_for_file: type=lint

@@ -31,6 +31,18 @@ Stream<List<Bill>> shopBills(ShopBillsRef ref, {String? type, DateTime? startDat
 }
 
 @riverpod
+Stream<List<Bill>> recentTransactions(RecentTransactionsRef ref) {
+  final activeShop = ref.watch(activeShopProvider);
+  if (activeShop == null) return Stream.value([]);
+  
+  // Watch all bills and take top 5
+  return ref.watch(billRepositoryProvider).watchBills(activeShop.id).map((list) {
+    if (list.length > 5) return list.sublist(0, 5);
+    return list;
+  });
+}
+
+@riverpod
 Stream<List<Bill>> purchaseBills(PurchaseBillsRef ref, {DateTime? startDate, DateTime? endDate}) {
   final activeShop = ref.watch(activeShopProvider);
   if (activeShop == null) return Stream.value([]);

@@ -74,9 +74,10 @@ class BillRepository {
       final billNumber = '$prefix-${now.year}-${(count + 1).toString().padLeft(4, '0')}';
 
       // 3. Insert Bill Header
+      final billUuid = _uuid.v4();
       final billId = await _db.into(_db.bills).insert(
             BillsCompanion.insert(
-              uuid: _uuid.v4(),
+              uuid: billUuid,
               shopId: shopId,
               billType: billType,
               billNumber: billNumber,
@@ -226,6 +227,19 @@ class BillRepository {
           }
         }
       }
+
+      // 7. Queue for Sync (Future Cloud Integration)
+      await _db.into(_db.syncQueue).insert(
+            SyncQueueCompanion.insert(
+              uuid: _uuid.v4(),
+              entityTable: 'bills',
+              recordUuid: billUuid,
+              operation: 'insert',
+              payload: '{"id": $billId, "number": "$billNumber", "total": $totalAmount}',
+              createdAt: Value(now),
+              updatedAt: Value(now),
+            ),
+          );
 
       return billId;
     });

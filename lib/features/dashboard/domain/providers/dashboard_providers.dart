@@ -17,6 +17,7 @@ class DashboardStats extends _$DashboardStats {
     double pendingReceivables,
     double pendingPayables,
     int totalProducts,
+    double stockValuation,
   })> build() async {
     final now = DateTime.now();
     final todayStart = DateTime(now.year, now.month, now.day);
@@ -46,6 +47,7 @@ class DashboardStats extends _$DashboardStats {
               pendingReceivables: receivables,
               pendingPayables: payables,
               totalProducts: products.length,
+              stockValuation: products.fold(0.0, (sum, p) => sum + (p.currentStock * p.purchasePrice)),
             );
           },
           loading: () => _loadingState(),
@@ -64,6 +66,7 @@ class DashboardStats extends _$DashboardStats {
     double pendingReceivables,
     double pendingPayables,
     int totalProducts,
+    double stockValuation,
   }) _loadingState() => (
     todaySalesAmount: 0.0,
     todaySalesCount: 0,
@@ -71,6 +74,7 @@ class DashboardStats extends _$DashboardStats {
     pendingReceivables: 0.0,
     pendingPayables: 0.0,
     totalProducts: 0,
+    stockValuation: 0.0,
   );
 
   ({
@@ -80,5 +84,6 @@ class DashboardStats extends _$DashboardStats {
     double pendingReceivables,
     double pendingPayables,
     int totalProducts,
+    double stockValuation,
   }) _errorState() => _loadingState();
 }

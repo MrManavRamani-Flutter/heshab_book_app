@@ -8,9 +8,10 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import 'config/di/service_locator.dart';
 import 'config/routes/app_router.dart';
-import 'config/theme/app_theme.dart';
+import 'core/theme/app_theme.dart';
 import 'core/constants/app_constants.dart';
 import 'features/auth/domain/providers/auth_provider.dart';
+import 'features/settings/domain/providers/settings_providers.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -60,6 +61,13 @@ class _HeshabBookAppState extends ConsumerState<HeshabBookApp> {
   @override
   Widget build(BuildContext context) {
     final router = ref.watch(routerProvider);
+    final themeModeStr = ref.watch(appThemeModeProvider);
+
+    final themeMode = switch (themeModeStr) {
+      'light' => ThemeMode.light,
+      'dark' => ThemeMode.dark,
+      _ => ThemeMode.system,
+    };
 
     return ScreenUtilInit(
       designSize: const Size(390, 844), // iPhone 14 Pro reference
@@ -69,9 +77,9 @@ class _HeshabBookAppState extends ConsumerState<HeshabBookApp> {
         return MaterialApp.router(
           title: AppConstants.appName,
           debugShowCheckedModeBanner: false,
-          theme: AppTheme.lightTheme,
+          theme: AppTheme.darkTheme, // Force premium dark for now as requested
           darkTheme: AppTheme.darkTheme,
-          themeMode: ThemeMode.light,
+          themeMode: themeMode,
           routerConfig: router,
         );
       },

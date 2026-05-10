@@ -201,6 +201,25 @@ class _ShopBillsProviderElement
   DateTime? get endDate => (origin as ShopBillsProvider).endDate;
 }
 
+String _$recentTransactionsHash() =>
+    r'cf2e66ce22742174dc7e6d3a4b2f4fdab23ba4ab';
+
+/// See also [recentTransactions].
+@ProviderFor(recentTransactions)
+final recentTransactionsProvider =
+    AutoDisposeStreamProvider<List<Bill>>.internal(
+      recentTransactions,
+      name: r'recentTransactionsProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$recentTransactionsHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef RecentTransactionsRef = AutoDisposeStreamProviderRef<List<Bill>>;
 String _$purchaseBillsHash() => r'898e7d8b14832ccd52e4c6def72c80e8385c915b';
 
 /// See also [purchaseBills].
