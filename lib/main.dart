@@ -14,6 +14,7 @@ import 'features/auth/domain/providers/auth_provider.dart';
 import 'features/settings/domain/providers/settings_providers.dart';
 
 Future<void> main() async {
+  print('🚀 Heshab Book: Starting App...');
   WidgetsFlutterBinding.ensureInitialized();
 
   // ── System UI ──────────────────────────────────────────────────────────────
@@ -21,21 +22,18 @@ Future<void> main() async {
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
-  SystemChrome.setSystemUIOverlayStyle(
-    const SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.dark,
-    ),
-  );
 
   // ── Hive Init ──────────────────────────────────────────────────────────────
+  print('📦 Heshab Book: Initializing Hive...');
   await Hive.initFlutter();
   await Hive.openBox(AppConstants.authBox);
   await Hive.openBox(AppConstants.settingsBox);
 
   // ── Dependency Injection ───────────────────────────────────────────────────
+  print('💉 Heshab Book: Setting up Service Locator...');
   await setupServiceLocator();
 
+  print('🏁 Heshab Book: Initialization Complete. Running App.');
   runApp(
     const ProviderScope(
       child: HeshabBookApp(),

@@ -1,9 +1,6 @@
 // lib/features/auth/presentation/widgets/auth_form_field.dart
-//
-// Reusable premium text field for auth screens
 
 import 'package:flutter/material.dart';
-import '../../../../../core/constants/app_colors.dart';
 
 class AuthFormField extends StatefulWidget {
   final String label;
@@ -49,17 +46,21 @@ class _AuthFormFieldState extends State<AuthFormField> {
       onEditingComplete: widget.onEditingComplete,
       validator: widget.validator,
       style: const TextStyle(
-        fontSize: 15,
+        fontSize: 16,
         fontWeight: FontWeight.w500,
-        color: AppColors.lightTextPrimary,
+        color: Colors.white, // Crisp white text
       ),
       decoration: InputDecoration(
         labelText: widget.label,
+        labelStyle: TextStyle(color: Colors.white.withValues(alpha: 0.6)),
         hintText: widget.hint,
+        hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.3)),
+        filled: true,
+        fillColor: Colors.white.withValues(alpha: 0.05),
         prefixIcon: Icon(
           widget.prefixIcon,
-          color: AppColors.lightTextSecondary,
-          size: 20,
+          color: Colors.white.withValues(alpha: 0.7),
+          size: 22,
         ),
         suffixIcon: widget.isPassword
             ? IconButton(
@@ -67,12 +68,28 @@ class _AuthFormFieldState extends State<AuthFormField> {
                   _obscureText
                       ? Icons.visibility_off_outlined
                       : Icons.visibility_outlined,
-                  color: AppColors.lightTextSecondary,
+                  color: Colors.white.withValues(alpha: 0.7),
                   size: 20,
                 ),
                 onPressed: () => setState(() => _obscureText = !_obscureText),
               )
             : null,
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: Colors.white, width: 1.5),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: Colors.redAccent, width: 1),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: Colors.redAccent, width: 1.5),
+        ),
       ),
     );
   }

@@ -1,13 +1,10 @@
 // lib/features/auth/presentation/screens/login_screen.dart
-//
-// Full production login screen with form validation, auth state handling,
-// loading states, and error display.
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/constants/app_colors.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../../config/routes/route_names.dart';
 import '../../data/models/auth_state.dart';
 import '../../domain/providers/auth_provider.dart';
@@ -46,232 +43,129 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
     final isLoading = authState is AuthLoading;
-    final errorMsg =
-        authState is AuthFailure ? (authState).message : null;
+    final errorMsg = authState is AuthFailure ? (authState).message : null;
 
     return Scaffold(
-      backgroundColor: AppColors.lightBackground,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // ── Header ───────────────────────────────────────────────────
-              _buildHeader(context),
-
-              // ── Form Card ────────────────────────────────────────────────
-              Padding(
-                padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const SizedBox(height: 32),
-
-                      // Error Banner
-                      if (errorMsg != null) _buildErrorBanner(errorMsg),
-                      if (errorMsg != null) const SizedBox(height: 16),
-
-                      // Mobile / Email
-                      AuthFormField(
-                        label: 'Mobile Number or Email',
-                        hint: '9876543210',
-                        prefixIcon: Icons.phone_android_outlined,
-                        keyboardType: TextInputType.emailAddress,
-                        controller: _mobileController,
-                        textInputAction: TextInputAction.next,
-                        enabled: !isLoading,
-                        validator: (v) {
-                          if (v == null || v.trim().isEmpty) {
-                            return 'Please enter your mobile or email';
-                          }
-                          return null;
-                        },
+      body: Container(
+        decoration: const BoxDecoration(gradient: AppColors.surfaceGradient),
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Logo Area
+                  Center(
+                    child: Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
                       ),
-                      const SizedBox(height: 16),
-
-                      // Password
-                      AuthFormField(
-                        label: 'Password',
-                        prefixIcon: Icons.lock_outline,
-                        isPassword: true,
-                        controller: _passwordController,
-                        textInputAction: TextInputAction.done,
-                        enabled: !isLoading,
-                        onEditingComplete: _onLogin,
-                        validator: (v) {
-                          if (v == null || v.isEmpty) {
-                            return 'Please enter your password';
-                          }
-                          if (v.length < 6) {
-                            return 'Password must be at least 6 characters';
-                          }
-                          return null;
-                        },
+                      child: const Icon(
+                        Icons.menu_book_rounded,
+                        size: 64,
+                        color: Colors.white,
                       ),
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  const Text(
+                    'Welcome Back',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const Text(
+                    'Securely login to your account',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: AppColors.textMuted,
+                    ),
+                  ),
+                  const SizedBox(height: 48),
 
-                      // Forgot Password
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: TextButton(
-                          onPressed: isLoading ? null : () {},
-                          child: Text(
-                            'Forgot Password?',
-                            style: TextStyle(
-                              color: isLoading
-                                  ? AppColors.lightTextHint
-                                  : AppColors.primary,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-
-                      // Login Button
-                      _buildLoginButton(isLoading),
-                      const SizedBox(height: 24),
-
-                      // Divider
-                      Row(
-                        children: [
-                          const Expanded(child: Divider()),
-                          Padding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 16),
-                            child: Text(
-                              "Don't have an account?",
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: AppColors.lightTextSecondary,
-                              ),
-                            ),
-                          ),
-                          const Expanded(child: Divider()),
+                  Form(
+                    key: _formKey,
+                    child: Column(
+                      children: [
+                        if (errorMsg != null) ...[
+                          _buildErrorBanner(errorMsg),
+                          const SizedBox(height: 24),
                         ],
-                      ),
-                      const SizedBox(height: 16),
+                        AuthFormField(
+                          label: 'Email or Mobile',
+                          prefixIcon: Icons.email_outlined,
+                          controller: _mobileController,
+                          enabled: !isLoading,
+                        ),
+                        const SizedBox(height: 16),
+                        AuthFormField(
+                          label: 'Password',
+                          prefixIcon: Icons.lock_outline,
+                          isPassword: true,
+                          controller: _passwordController,
+                          enabled: !isLoading,
+                        ),
+                      ],
+                    ),
+                  ),
 
-                      // Register Button
-                      OutlinedButton(
-                        onPressed:
-                            isLoading ? null : () => context.go(RouteNames.register),
-                        child: const Text('Create New Account'),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () {},
+                      child: const Text('Forgot Password?', style: TextStyle(color: AppColors.primary)),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  ElevatedButton(
+                    onPressed: isLoading ? null : _onLogin,
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: const Size(double.infinity, 56),
+                    ),
+                    child: isLoading 
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : const Text('LOGIN'),
+                  ),
+
+                  const SizedBox(height: 32),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text("Don't have an account? ", style: TextStyle(color: AppColors.textMuted)),
+                      TextButton(
+                        onPressed: () => context.go(RouteNames.register),
+                        child: const Text('Sign Up', style: TextStyle(fontWeight: FontWeight.bold)),
                       ),
-                      const SizedBox(height: 32),
                     ],
                   ),
-                ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildHeader(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(24, 48, 24, 36),
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [AppColors.primary, AppColors.primaryDark],
-        ),
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(32),
-          bottomRight: Radius.circular(32),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 60,
-            height: 60,
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: const Icon(
-              Icons.menu_book_rounded,
-              size: 34,
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(height: 20),
-          const Text(
-            'Welcome Back',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 28,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.2,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            'Login to Heshab Book',
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.8),
-              fontSize: 15,
-              fontWeight: FontWeight.w400,
-            ),
-          ),
-        ],
       ),
     );
   }
 
   Widget _buildErrorBanner(String message) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.errorLight,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
+        color: Colors.red.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.red.withValues(alpha: 0.2)),
       ),
-      child: Row(
-        children: [
-          const Icon(Icons.error_outline, color: AppColors.error, size: 18),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              message,
-              style: const TextStyle(
-                color: AppColors.error,
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLoginButton(bool isLoading) {
-    return SizedBox(
-      height: 52,
-      child: ElevatedButton(
-        onPressed: isLoading ? null : _onLogin,
-        child: isLoading
-            ? const SizedBox(
-                width: 22,
-                height: 22,
-                child: CircularProgressIndicator(
-                  color: Colors.white,
-                  strokeWidth: 2.5,
-                ),
-              )
-            : const Text(
-                'Login',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-              ),
-      ),
+      child: Text(message, style: const TextStyle(color: Colors.redAccent)),
     );
   }
 }

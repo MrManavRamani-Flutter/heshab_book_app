@@ -67,6 +67,9 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       // Unauthenticated — send to login
       if (authState is AuthUnauthenticated || authState is AuthFailure) {
+        // If on splash, we must go to login
+        if (currentPath == RouteNames.splash) return RouteNames.login;
+        // If already on public routes (login/register), stay there
         if (publicRoutes.contains(currentPath)) return null;
         return RouteNames.login;
       }
