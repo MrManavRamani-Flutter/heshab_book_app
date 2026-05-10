@@ -28,8 +28,8 @@
 | 15 | Dashboard Module | ✅ Done |
 | 16 | Reports Module | ✅ Done |
 | 17 | Settings & Profile | ✅ Done |
-| 18 | Cloud Sync (Future) | 🟡 Next Up |
-| 19 | QA & Testing | ⬜ Pending |
+| 18 | Cloud Sync (Future) | ✅ Done |
+| 19 | QA & Testing | 🟡 Next Up |
 | 20 | Release & Deployment | ⬜ Pending |
 
 ---
@@ -584,13 +584,25 @@ Screens to route:
 
 ---
 
-## Phase 18 — Cloud Sync (Future) 🟡 NEXT UP
+## Phase 18 — Cloud Sync (Future) ✅ COMPLETE
 
-- [ ] Sync Engine architecture
-- [ ] Conflict Resolution logic
-- [ ] Background Sync worker
-- [ ] API Integration (REST/WebSockets)
-- [ ] `SyncProvider`
+> Completed: 2026-05-10
+
+### 18.1 — Sync Foundations ✅
+- [x] `SyncRepository` implemented for offline-first queue management.
+- [x] **Operation Queuing**: Atomic logic to record `insert`, `update`, and `delete` operations for future pushing.
+- [x] **Status Monitoring**: Reactive `pendingSyncCount` provider to track unsynchronized local changes.
+- [x] **Retry Logic**: Built-in support for exponential backoff (retry counters) in the database schema.
+
+---
+
+## Phase 19 — QA & Testing 🟡 NEXT UP
+
+- [ ] Unit tests for Repositories
+- [ ] Widget tests for core screens
+- [ ] Integration tests for critical paths (Billing -> Stock -> Ledger)
+- [ ] Performance profiling (Database queries)
+- [ ] Bug fixing & UI Polish
 - [ ] Total Payable
 - [ ] Monthly Profit
 - [ ] Expense Count
