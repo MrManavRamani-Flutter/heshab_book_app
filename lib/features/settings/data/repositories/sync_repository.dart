@@ -1,26 +1,48 @@
 // lib/features/settings/data/repositories/sync_repository.dart
 
 import 'dart:io';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
-import 'package:googleapis_auth/auth_io.dart';
+import 'package:extension_google_sign_in_as_googleapis_auth/extension_google_sign_in_as_googleapis_auth.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
-import '../models/service_account_credentials.dart';
 
 class SyncRepository {
-  // Upgraded to driveScope for full access to shared folders
-  final _scopes = [drive.DriveApi.driveScope];
+  // Define scopes for Google Drive access
+  static const _scopes = [
+    drive.DriveApi.driveFileScope,
+  ];
 
-  Future<AutoRefreshingAuthClient> _getAuthClient() async {
-    final credentials = ServiceAccountCredentials.fromJson(serviceAccountCredentials);
-    return await clientViaServiceAccount(credentials, _scopes);
+  /// Helper to get an authenticated Drive API client
+  Future<drive.DriveApi?> _getDriveApi() async {
+    try {
+      final signIn = GoogleSignIn.instance;
+
+      // 1. Initialize the singleton
+      await signIn.initialize();
+
+      // 2. Trigger Authentication (Sign In)
+      final GoogleSignInAccount account = await signIn.authenticate(
+        scopeHint: _scopes,
+      );
+
+      // 3. Request Authorization for Drive scopes
+      // returns a GoogleSignInClientAuthorization
+      final authResult = await account.authorizationClient.authorizeScopes(_scopes);
+
+      // 4. Use the NEW authClient extension method on the authResult
+      final httpClient = authResult.authClient(scopes: _scopes);
+
+      return drive.DriveApi(httpClient);
+    } catch (e) {
+      return null;
+    }
   }
 
   /// Helper to find or create the central backup folder
   Future<String> _getOrCreateFolder(drive.DriveApi driveApi) async {
     const folderName = 'Heshab_Backups';
     
-    // Search for existing folder
     final folderList = await driveApi.files.list(
       q: "name = '$folderName' and mimeType = 'application/vnd.google-apps.folder' and trashed = false",
       spaces: 'drive',
@@ -30,7 +52,6 @@ class SyncRepository {
       return folderList.files!.first.id!;
     }
 
-    // Not found? Create it automatically
     final folderMetadata = drive.File()
       ..name = folderName
       ..mimeType = 'application/vnd.google-apps.folder';
@@ -40,21 +61,16 @@ class SyncRepository {
   }
 
   Future<void> backupDatabase(String userId) async {
-    final client = await _getAuthClient();
+    final driveApi = await _getDriveApi();
+    if (driveApi == null) throw Exception('Google Sign-In failed. Please check your internet and try again.');
+
     try {
-      final driveApi = drive.DriveApi(client);
-
-      // 1. Ensure the vault exists
       final folderId = await _getOrCreateFolder(driveApi);
-
-      // 2. Get the local DB file
       final appDir = await getApplicationDocumentsDirectory();
       final dbFile = File(p.join(appDir.path, 'heshab_book.sqlite'));
-      if (!await dbFile.exists()) throw Exception('Local database not found.');
+      if (!await dbFile.exists()) throw Exception('Local database file not found.');
 
-      // 3. Prepare the file for upload
       final fileName = 'backup_$userId.sqlite';
-      
       final existingFiles = await driveApi.files.list(
         q: "name = '$fileName' and '$folderId' in parents and trashed = false",
       );
@@ -64,7 +80,6 @@ class SyncRepository {
         ..parents = [folderId];
 
       if (existingFiles.files != null && existingFiles.files!.isNotEmpty) {
-        // Update existing backup
         final fileId = existingFiles.files!.first.id!;
         await driveApi.files.update(
           driveFile,
@@ -72,22 +87,21 @@ class SyncRepository {
           uploadMedia: drive.Media(dbFile.openRead(), await dbFile.length()),
         );
       } else {
-        // Create new backup entry
         await driveApi.files.create(
           driveFile,
           uploadMedia: drive.Media(dbFile.openRead(), await dbFile.length()),
         );
       }
-    } finally {
-      client.close();
+    } catch (e) {
+      rethrow;
     }
   }
 
   Future<void> restoreDatabase(String userId) async {
-    final client = await _getAuthClient();
-    try {
-      final driveApi = drive.DriveApi(client);
+    final driveApi = await _getDriveApi();
+    if (driveApi == null) throw Exception('Google Sign-In failed. Please check your internet and try again.');
 
+    try {
       final fileName = 'backup_$userId.sqlite';
       final files = await driveApi.files.list(
         q: "name = '$fileName' and trashed = false",
@@ -111,9 +125,12 @@ class SyncRepository {
         dataBytes.addAll(chunk);
       }
       await dbFile.writeAsBytes(dataBytes);
-      
-    } finally {
-      client.close();
+    } catch (e) {
+      rethrow;
     }
+  }
+
+  Future<void> signOut() async {
+    await GoogleSignIn.instance.signOut();
   }
 }
