@@ -1,21 +1,19 @@
 // lib/features/auth/presentation/screens/shop_setup_screen.dart
-//
-// First-time shop setup screen shown after registration.
-// Required before accessing the main app.
 
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
-import '../../../../core/constants/app_colors.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../config/di/service_locator.dart';
 import '../../../../database/app_database.dart';
 import '../../../../database/daos/shop_dao.dart';
 import '../../data/models/auth_state.dart';
 import '../../domain/providers/auth_provider.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import '../widgets/auth_form_field.dart';
 
 class ShopSetupScreen extends ConsumerStatefulWidget {
   const ShopSetupScreen({super.key});
@@ -35,26 +33,26 @@ class _ShopSetupScreenState extends ConsumerState<ShopSetupScreen> {
   String? _errorMsg;
 
   final List<_ShopTypeOption> _shopTypes = [
-    _ShopTypeOption(
+    const _ShopTypeOption(
       value: 'big_hall',
       label: 'Big Hall / Wholesale',
       subtitle: 'Sell to retailers in bulk',
       icon: Icons.warehouse_outlined,
-      color: AppColors.primary,
+      color: Colors.blueAccent,
     ),
-    _ShopTypeOption(
+    const _ShopTypeOption(
       value: 'mix_hall',
       label: 'Mix Hall + Retail',
       subtitle: 'Both wholesale and retail',
       icon: Icons.store_outlined,
-      color: AppColors.secondary,
+      color: Colors.orangeAccent,
     ),
-    _ShopTypeOption(
+    const _ShopTypeOption(
       value: 'retail',
       label: 'Retail Shop',
       subtitle: 'Direct customer sales',
       icon: Icons.shopping_bag_outlined,
-      color: AppColors.accent,
+      color: Colors.pinkAccent,
     ),
   ];
 
@@ -89,29 +87,19 @@ class _ShopSetupScreenState extends ConsumerState<ShopSetupScreen> {
           userId: userId,
           shopName: _shopNameController.text.trim(),
           shopType: _selectedShopType,
-          phone: Value(_phoneController.text.trim().isEmpty
-              ? null
-              : _phoneController.text.trim()),
-          address: Value(_addressController.text.trim().isEmpty
-              ? null
-              : _addressController.text.trim()),
+          phone: Value(_phoneController.text.trim().isEmpty ? null : _phoneController.text.trim()),
+          address: Value(_addressController.text.trim().isEmpty ? null : _addressController.text.trim()),
           createdAt: Value(now),
           updatedAt: Value(now),
         ),
       );
 
-      // Save current shop to Hive
-      // We'll get the newly created shop's ID
       final shops = await shopDao.getShopsByUser(userId);
       if (shops.isNotEmpty) {
-        await Hive.box(AppConstants.authBox)
-            .put(AppConstants.keyCurrentShopId, shops.first.id);
+        await Hive.box(AppConstants.authBox).put(AppConstants.keyCurrentShopId, shops.first.id);
       }
 
-      // Mark shop setup complete
-      ref
-          .read(authProvider.notifier)
-          .markShopSetupDone(authState.user);
+      ref.read(authProvider.notifier).markShopSetupDone(authState.user);
     } catch (e) {
       setState(() {
         _errorMsg = 'Could not save shop. Please try again.';
@@ -123,124 +111,61 @@ class _ShopSetupScreenState extends ConsumerState<ShopSetupScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.lightBackground,
-      body: SafeArea(
-        child: SingleChildScrollView(
+      body: Container(
+        decoration: const BoxDecoration(gradient: AppColors.surfaceGradient),
+        child: SafeArea(
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // ── Header ──────────────────────────────────────────────────
               _buildHeader(),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        if (_errorMsg != null) ...[
+                          _buildErrorBanner(_errorMsg!),
+                          const SizedBox(height: 24),
+                        ],
 
-              Padding(
-                padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // Error
-                      if (_errorMsg != null) ...[
-                        _buildErrorBanner(_errorMsg!),
+                        const Text('Shop Type', style: TextStyle(color: AppColors.textMuted, fontSize: 14, fontWeight: FontWeight.w600)),
+                        const SizedBox(height: 12),
+                        ..._shopTypes.map((type) => _buildShopTypeCard(type)),
+                        
+                        const SizedBox(height: 24),
+                        AuthFormField(
+                          label: 'Shop Name *',
+                          prefixIcon: Icons.storefront_outlined,
+                          controller: _shopNameController,
+                          enabled: !_isSaving,
+                        ),
                         const SizedBox(height: 16),
-                      ],
-
-                      // Shop Type Selector
-                      Text(
-                        'Shop Type',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.lightTextSecondary,
+                        AuthFormField(
+                          label: 'Shop Phone (Optional)',
+                          prefixIcon: Icons.phone_outlined,
+                          controller: _phoneController,
+                          enabled: !_isSaving,
                         ),
-                      ),
-                      const SizedBox(height: 10),
-                      ..._shopTypes.map((type) => _buildShopTypeCard(type)),
-                      const SizedBox(height: 20),
-
-                      // Shop Name
-                      TextFormField(
-                        controller: _shopNameController,
-                        enabled: !_isSaving,
-                        textInputAction: TextInputAction.next,
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w500,
+                        const SizedBox(height: 16),
+                        AuthFormField(
+                          label: 'Shop Address (Optional)',
+                          prefixIcon: Icons.location_on_outlined,
+                          controller: _addressController,
+                          enabled: !_isSaving,
                         ),
-                        decoration: const InputDecoration(
-                          labelText: 'Shop Name *',
-                          hintText: 'e.g. Ramani Cloth House',
-                          prefixIcon: Icon(Icons.storefront_outlined),
-                        ),
-                        validator: (v) {
-                          if (v == null || v.trim().isEmpty) {
-                            return 'Please enter your shop name';
-                          }
-                          if (v.trim().length < 2) {
-                            return 'Shop name must be at least 2 characters';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 14),
+                        const SizedBox(height: 40),
 
-                      // Phone
-                      TextFormField(
-                        controller: _phoneController,
-                        enabled: !_isSaving,
-                        keyboardType: TextInputType.phone,
-                        textInputAction: TextInputAction.next,
-                        decoration: const InputDecoration(
-                          labelText: 'Shop Phone (Optional)',
-                          prefixIcon: Icon(Icons.phone_outlined),
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-
-                      // Address
-                      TextFormField(
-                        controller: _addressController,
-                        enabled: !_isSaving,
-                        maxLines: 2,
-                        textInputAction: TextInputAction.done,
-                        decoration: const InputDecoration(
-                          labelText: 'Shop Address (Optional)',
-                          prefixIcon: Icon(Icons.location_on_outlined),
-                          alignLabelWithHint: true,
-                        ),
-                      ),
-                      const SizedBox(height: 32),
-
-                      // Save Button
-                      SizedBox(
-                        height: 52,
-                        child: ElevatedButton(
+                        ElevatedButton(
                           onPressed: _isSaving ? null : _onSaveShop,
+                          style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 56)),
                           child: _isSaving
-                              ? const SizedBox(
-                                  width: 22,
-                                  height: 22,
-                                  child: CircularProgressIndicator(
-                                    color: Colors.white,
-                                    strokeWidth: 2.5,
-                                  ),
-                                )
-                              : const Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      'Save & Start →',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                              ? const CircularProgressIndicator(color: Colors.white)
+                              : const Text('SAVE & START'),
                         ),
-                      ),
-                      const SizedBox(height: 16),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -252,47 +177,22 @@ class _ShopSetupScreenState extends ConsumerState<ShopSetupScreen> {
   }
 
   Widget _buildHeader() {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(24, 48, 24, 32),
-      decoration: const BoxDecoration(
-        color: AppColors.primary,
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(32),
-          bottomRight: Radius.circular(32),
-        ),
-      ),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(12),
+              color: Colors.white.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(16),
             ),
-            child: const Icon(
-              Icons.store_rounded,
-              color: Colors.white,
-              size: 28,
-            ),
+            child: const Icon(Icons.store_rounded, color: Colors.white, size: 32),
           ),
           const SizedBox(height: 16),
-          const Text(
-            'Setup Your Shop',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 26,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            'You can add more shops later from settings',
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.8),
-              fontSize: 13,
-            ),
-          ),
+          const Text('Setup Your Shop', style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold)),
+          const Text('Start your digital bookkeeping journey', style: TextStyle(color: AppColors.textMuted, fontSize: 14)),
         ],
       ),
     );
@@ -301,66 +201,33 @@ class _ShopSetupScreenState extends ConsumerState<ShopSetupScreen> {
   Widget _buildShopTypeCard(_ShopTypeOption type) {
     final isSelected = _selectedShopType == type.value;
     return GestureDetector(
-      onTap: _isSaving
-          ? null
-          : () => setState(() => _selectedShopType = type.value),
+      onTap: _isSaving ? null : () => setState(() => _selectedShopType = type.value),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        margin: const EdgeInsets.only(bottom: 10),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        duration: const Duration(milliseconds: 250),
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isSelected
-              ? type.color.withValues(alpha: 0.08)
-              : AppColors.lightSurface,
-          borderRadius: BorderRadius.circular(12),
+          color: isSelected ? type.color.withValues(alpha: 0.1) : Colors.white.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? type.color : AppColors.lightDivider,
+            color: isSelected ? type.color : Colors.white.withValues(alpha: 0.1),
             width: isSelected ? 2 : 1,
           ),
         ),
         child: Row(
           children: [
-            Container(
-              width: 42,
-              height: 42,
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? type.color.withValues(alpha: 0.15)
-                    : AppColors.lightBackground,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(type.icon,
-                  color: isSelected ? type.color : AppColors.lightTextHint,
-                  size: 22),
-            ),
-            const SizedBox(width: 14),
+            Icon(type.icon, color: isSelected ? type.color : Colors.white70, size: 28),
+            const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    type.label,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: isSelected
-                          ? type.color
-                          : AppColors.lightTextPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    type.subtitle,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: AppColors.lightTextSecondary,
-                    ),
-                  ),
+                  Text(type.label, style: TextStyle(color: isSelected ? Colors.white : Colors.white70, fontSize: 16, fontWeight: FontWeight.bold)),
+                  Text(type.subtitle, style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
                 ],
               ),
             ),
-            if (isSelected)
-              Icon(Icons.check_circle, color: type.color, size: 22),
+            if (isSelected) Icon(Icons.check_circle_rounded, color: type.color),
           ],
         ),
       ),
@@ -369,22 +236,9 @@ class _ShopSetupScreenState extends ConsumerState<ShopSetupScreen> {
 
   Widget _buildErrorBanner(String message) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: AppColors.errorLight,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.error_outline, color: AppColors.error, size: 18),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(message,
-                style: const TextStyle(
-                    color: AppColors.error, fontSize: 13)),
-          ),
-        ],
-      ),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(color: Colors.red.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
+      child: Text(message, style: const TextStyle(color: Colors.redAccent)),
     );
   }
 }
@@ -395,12 +249,5 @@ class _ShopTypeOption {
   final String subtitle;
   final IconData icon;
   final Color color;
-
-  const _ShopTypeOption({
-    required this.value,
-    required this.label,
-    required this.subtitle,
-    required this.icon,
-    required this.color,
-  });
+  const _ShopTypeOption({required this.value, required this.label, required this.subtitle, required this.icon, required this.color});
 }
