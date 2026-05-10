@@ -33,38 +33,25 @@ class Auth extends _$Auth {
 
   /// Called once at app startup to restore session from Hive + SQLite
   Future<void> initialize() async {
-    print('🔐 AuthNotifier: Starting Initialization...');
     state = const AuthLoading();
     try {
-      print('🔐 AuthNotifier: Restoring Session from Repository...');
       final user = await _repo.restoreSession().timeout(
         const Duration(seconds: 5),
-        onTimeout: () {
-          print('⚠️ AuthNotifier: Restore Session Timed Out!');
-          return null;
-        },
+        onTimeout: () => null,
       );
 
       if (user != null) {
-        print('🔐 AuthNotifier: User Found (ID: ${user.id}). Checking for Shop...');
         final hasShop = await _repo.hasShop(user.id).timeout(
           const Duration(seconds: 3),
-          onTimeout: () {
-            print('⚠️ AuthNotifier: Shop Check Timed Out!');
-            return false;
-          },
+          onTimeout: () => false,
         );
-        print('🔐 AuthNotifier: Shop Check Complete. hasShop: $hasShop');
         state = AuthAuthenticated(user: user, isFirstLogin: !hasShop);
       } else {
-        print('🔐 AuthNotifier: No Session Found. Going to Unauthenticated.');
         state = const AuthUnauthenticated();
       }
     } catch (e) {
-      print('❌ AuthNotifier Error: $e');
       state = const AuthUnauthenticated();
     }
-    print('🏁 AuthNotifier: Initialization Finished. State: $state');
   }
 
   /// Register a new user, then check if they need shop setup
@@ -82,7 +69,6 @@ class Auth extends _$Auth {
         email: email,
         password: password,
       );
-      // New user always needs shop setup
       state = AuthAuthenticated(user: user, isFirstLogin: true);
     } on AuthException catch (e) {
       state = AuthFailure(e.message);

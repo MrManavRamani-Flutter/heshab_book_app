@@ -44,12 +44,12 @@ class AppTheme {
         iconTheme: const IconThemeData(color: AppColors.textPrimary),
       ),
 
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: AppColors.surfaceLight,
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          border: const BorderSide(color: AppColors.glassBorder, width: 1),
+          side: const BorderSide(color: AppColors.glassBorder, width: 1),
         ),
       ),
 

@@ -8,13 +8,12 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import 'config/di/service_locator.dart';
 import 'config/routes/app_router.dart';
-import 'core/theme/app_theme.dart';
+import 'config/theme/app_theme.dart';
 import 'core/constants/app_constants.dart';
 import 'features/auth/domain/providers/auth_provider.dart';
 import 'features/settings/domain/providers/settings_providers.dart';
 
 Future<void> main() async {
-  print('🚀 Heshab Book: Starting App...');
   WidgetsFlutterBinding.ensureInitialized();
 
   // ── System UI ──────────────────────────────────────────────────────────────
@@ -24,16 +23,13 @@ Future<void> main() async {
   ]);
 
   // ── Hive Init ──────────────────────────────────────────────────────────────
-  print('📦 Heshab Book: Initializing Hive...');
   await Hive.initFlutter();
   await Hive.openBox(AppConstants.authBox);
   await Hive.openBox(AppConstants.settingsBox);
 
   // ── Dependency Injection ───────────────────────────────────────────────────
-  print('💉 Heshab Book: Setting up Service Locator...');
   await setupServiceLocator();
 
-  print('🏁 Heshab Book: Initialization Complete. Running App.');
   runApp(
     const ProviderScope(
       child: HeshabBookApp(),
