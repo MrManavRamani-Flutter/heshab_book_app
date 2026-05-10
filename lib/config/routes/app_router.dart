@@ -17,6 +17,8 @@ import '../../features/auth/presentation/screens/register_screen.dart';
 import '../../features/auth/presentation/screens/shop_setup_screen.dart';
 import '../../features/dashboard/presentation/screens/dashboard_screen.dart';
 import '../../features/billing/presentation/screens/billing_screen.dart';
+import '../../features/inventory/presentation/screens/product_list_screen.dart';
+import '../../features/inventory/presentation/screens/product_form_screen.dart';
 
 // ── Router Notifier (bridges Riverpod → GoRouter refresh) ─────────────────
 
@@ -118,6 +120,14 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: RouteNames.billsCreate,
         builder: (context, state) => const BillingScreen(),
+      ),
+      GoRoute(
+        path: RouteNames.products,
+        builder: (context, state) => const ProductListScreen(),
+      ),
+      GoRoute(
+        path: RouteNames.productsAdd,
+        builder: (context, state) => const ProductFormScreen(),
       ),
     ],
 
