@@ -20,7 +20,7 @@
 | 7 | Supplier Management Module | ✅ Done |
 | 8 | Retailer / Customer Management Module | ✅ Done |
 | 9 | Stock Management Module | ✅ Done |
-| 10 | Billing System (Purchase + Sales + Return) | ✅ Done |
+| 10 | Billing System | ✅ Done |
 | 11 | Payment Management Module | ✅ Done |
 | 12 | Ledger System | ✅ Done |
 | 13 | Expense Management Module | ✅ Done |
