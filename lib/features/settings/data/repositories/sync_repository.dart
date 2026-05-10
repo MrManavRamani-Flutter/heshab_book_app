@@ -13,6 +13,9 @@ class SyncRepository {
     drive.DriveApi.driveFileScope,
   ];
 
+  // Your specific iOS Client ID (extracted from Info.plist)
+  static const _iosClientId = '576268493710-obdv53uuvc76g5h2kdcebsf3hlujpdbj.apps.googleusercontent.com';
+
   // Store the email manually since v7.2.0 removed currentUser getter
   String? _currentUserEmail;
 
@@ -27,8 +30,10 @@ class SyncRepository {
     try {
       final signIn = GoogleSignIn.instance;
 
-      // 1. Initialize the singleton
-      await signIn.initialize();
+      // 1. Initialize with explicit clientId for iOS/Simulator stability
+      await signIn.initialize(
+        clientId: Platform.isIOS ? _iosClientId : null,
+      );
 
       // 2. Trigger Authentication (Sign In)
       final GoogleSignInAccount account = await signIn.authenticate(
@@ -46,6 +51,7 @@ class SyncRepository {
 
       return drive.DriveApi(httpClient);
     } catch (e) {
+      // Return null so the UI can show the cancellation/error message
       return null;
     }
   }
