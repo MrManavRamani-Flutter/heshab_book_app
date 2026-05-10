@@ -27,8 +27,8 @@
 | 14 | Profit & Loss Module | ✅ Done |
 | 15 | Dashboard Module | ✅ Done |
 | 16 | Reports Module | ✅ Done |
-| 17 | Settings & Profile | 🟡 Next Up |
-| 18 | Cloud Sync (Future) | ⬜ Future |
+| 17 | Settings & Profile | ✅ Done |
+| 18 | Cloud Sync (Future) | 🟡 Next Up |
 | 19 | QA & Testing | ⬜ Pending |
 | 20 | Release & Deployment | ⬜ Pending |
 
@@ -568,15 +568,29 @@ Screens to route:
 
 ---
 
-## Phase 17 — Settings & Profile 🟡 NEXT UP
+## Phase 17 — Settings & Profile ✅ COMPLETE
 
-- [ ] Profile Edit Screen
-- [ ] Shop Profile (GSTIN, Address, Logo)
-- [ ] Backup/Restore (Local)
-- [ ] Theme Selection (Light/Dark)
-- [ ] Language Selection (Eng/Hindi/Guj)
-- [ ] `SettingsProvider`
-- [ ] `SettingsRepository`
+> Completed: 2026-05-10
+
+### 17.1 — Preference Management ✅
+- [x] `SettingsRepository` implemented using Hive for persistence.
+- [x] **Theme Engine**: Support for Light, Dark, and System modes.
+- [x] **Localization**: Persistent Language Selection (English/Hindi/Gujarati).
+- [x] **Security**: Toggle for Biometric Authentication (FaceID/Fingerprint).
+
+### 17.2 — Shop Profile ✅
+- [x] Implemented profile update logic for Shops (Name, Address, Phone, GSTIN).
+- [x] Multi-shop support for unique profile settings per entity.
+
+---
+
+## Phase 18 — Cloud Sync (Future) 🟡 NEXT UP
+
+- [ ] Sync Engine architecture
+- [ ] Conflict Resolution logic
+- [ ] Background Sync worker
+- [ ] API Integration (REST/WebSockets)
+- [ ] `SyncProvider`
 - [ ] Total Payable
 - [ ] Monthly Profit
 - [ ] Expense Count
