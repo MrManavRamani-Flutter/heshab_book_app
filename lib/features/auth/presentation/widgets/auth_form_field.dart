@@ -1,6 +1,7 @@
 // lib/features/auth/presentation/widgets/auth_form_field.dart
 
 import 'package:flutter/material.dart';
+import '../../../../core/theme/app_colors.dart';
 
 class AuthFormField extends StatefulWidget {
   final String label;
@@ -13,6 +14,7 @@ class AuthFormField extends StatefulWidget {
   final TextInputAction textInputAction;
   final VoidCallback? onEditingComplete;
   final bool enabled;
+  final String? infoMessage; // New parameter for the info icon
 
   const AuthFormField({
     super.key,
@@ -26,6 +28,7 @@ class AuthFormField extends StatefulWidget {
     this.textInputAction = TextInputAction.next,
     this.onEditingComplete,
     this.enabled = true,
+    this.infoMessage,
   });
 
   @override
@@ -34,6 +37,38 @@ class AuthFormField extends StatefulWidget {
 
 class _AuthFormFieldState extends State<AuthFormField> {
   bool _obscureText = true;
+
+  void _showInfo() {
+    if (widget.infoMessage == null) return;
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: const BorderSide(color: AppColors.glassBorder),
+        ),
+        title: Row(
+          children: [
+            Icon(Icons.info_outline, color: AppColors.primary, size: 24),
+            const SizedBox(width: 12),
+            Text(widget.label, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+          ],
+        ),
+        content: Text(
+          widget.infoMessage!,
+          style: const TextStyle(color: AppColors.textSecondary, fontSize: 15),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('GOT IT', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,7 +83,7 @@ class _AuthFormFieldState extends State<AuthFormField> {
       style: const TextStyle(
         fontSize: 16,
         fontWeight: FontWeight.w500,
-        color: Colors.white, // Crisp white text
+        color: Colors.white,
       ),
       decoration: InputDecoration(
         labelText: widget.label,
@@ -62,18 +97,25 @@ class _AuthFormFieldState extends State<AuthFormField> {
           color: Colors.white.withValues(alpha: 0.7),
           size: 22,
         ),
-        suffixIcon: widget.isPassword
-            ? IconButton(
+        suffixIcon: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (widget.infoMessage != null)
+              IconButton(
+                icon: Icon(Icons.info_outline, color: Colors.white.withValues(alpha: 0.4), size: 20),
+                onPressed: _showInfo,
+              ),
+            if (widget.isPassword)
+              IconButton(
                 icon: Icon(
-                  _obscureText
-                      ? Icons.visibility_off_outlined
-                      : Icons.visibility_outlined,
+                  _obscureText ? Icons.visibility_off_outlined : Icons.visibility_outlined,
                   color: Colors.white.withValues(alpha: 0.7),
                   size: 20,
                 ),
                 onPressed: () => setState(() => _obscureText = !_obscureText),
-              )
-            : null,
+              ),
+          ],
+        ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),

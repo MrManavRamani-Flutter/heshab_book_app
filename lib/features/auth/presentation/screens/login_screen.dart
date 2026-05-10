@@ -102,19 +102,29 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ],
                         AuthFormField(
                           label: 'Email or Mobile',
+                          hint: 'e.g. 9876543210',
                           prefixIcon: Icons.email_outlined,
                           controller: _mobileController,
                           enabled: !isLoading,
-                          validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter your email or mobile' : null,
+                          infoMessage: 'Enter the mobile number or email address you used during registration.',
+                          validator: (v) {
+                            if (v == null || v.trim().isEmpty) return 'Enter your email or mobile';
+                            return null;
+                          },
                         ),
                         const SizedBox(height: 16),
                         AuthFormField(
                           label: 'Password',
+                          hint: 'Enter your password',
                           prefixIcon: Icons.lock_outline,
                           isPassword: true,
                           controller: _passwordController,
                           enabled: !isLoading,
-                          validator: (v) => (v == null || v.isEmpty) ? 'Enter your password' : null,
+                          infoMessage: 'Enter your secure 6+ character password to access your business records.',
+                          validator: (v) {
+                            if (v == null || v.isEmpty) return 'Enter your password';
+                            return null;
+                          },
                         ),
                       ],
                     ),

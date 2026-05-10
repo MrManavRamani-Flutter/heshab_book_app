@@ -80,12 +80,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         // Full Name
                         AuthFormField(
                           label: 'Full Name',
+                          hint: 'e.g. Manav Ramani',
                           prefixIcon: Icons.person_outline,
                           controller: _nameController,
                           enabled: !isLoading,
+                          infoMessage: 'Enter your full legal name. This will be used on your shop bills and reports.',
                           validator: (v) {
-                            if (v == null || v.trim().isEmpty) return 'Enter your full name';
-                            if (v.trim().length < 2) return 'Name is too short';
+                            if (v == null || v.trim().isEmpty) return 'Full name is required';
+                            if (v.trim().length < 2) return 'Name must be at least 2 characters';
                             return null;
                           },
                         ),
@@ -94,14 +96,16 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         // Mobile Number
                         AuthFormField(
                           label: 'Mobile Number',
+                          hint: 'e.g. 9876543210',
                           prefixIcon: Icons.phone_android_outlined,
                           keyboardType: TextInputType.phone,
                           controller: _mobileController,
                           enabled: !isLoading,
+                          infoMessage: 'Your 10-digit mobile number will be your primary login ID and for cloud sync recovery.',
                           validator: (v) {
-                            if (v == null || v.trim().isEmpty) return 'Enter mobile number';
+                            if (v == null || v.trim().isEmpty) return 'Mobile number is required';
                             if (!RegExp(r'^[0-9]{10}$').hasMatch(v.trim())) {
-                              return 'Enter a valid 10-digit mobile number';
+                              return 'Please enter a valid 10-digit mobile number';
                             }
                             return null;
                           },
@@ -111,10 +115,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         // Email
                         AuthFormField(
                           label: 'Email (Optional)',
+                          hint: 'e.g. manav@example.com',
                           prefixIcon: Icons.email_outlined,
                           keyboardType: TextInputType.emailAddress,
                           controller: _emailController,
                           enabled: !isLoading,
+                          infoMessage: 'Optional. We will use this to send you monthly business reports and security alerts.',
                           validator: (v) {
                             if (v != null && v.trim().isNotEmpty) {
                               if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(v.trim())) {
@@ -129,13 +135,15 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         // Password
                         AuthFormField(
                           label: 'Password',
+                          hint: 'Min. 6 characters',
                           prefixIcon: Icons.lock_outline,
                           isPassword: true,
                           controller: _passwordController,
                           enabled: !isLoading,
+                          infoMessage: 'Choose a strong password with at least 6 characters to secure your business data.',
                           validator: (v) {
-                            if (v == null || v.isEmpty) return 'Enter a password';
-                            if (v.length < 6) return 'Minimum 6 characters required';
+                            if (v == null || v.isEmpty) return 'Password is required';
+                            if (v.length < 6) return 'Password must be at least 6 characters';
                             return null;
                           },
                         ),
@@ -144,14 +152,16 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         // Confirm Password
                         AuthFormField(
                           label: 'Confirm Password',
+                          hint: 'Re-enter password',
                           prefixIcon: Icons.lock_clock_outlined,
                           isPassword: true,
                           controller: _confirmPasswordController,
                           enabled: !isLoading,
                           textInputAction: TextInputAction.done,
                           onEditingComplete: _onRegister,
+                          infoMessage: 'Confirm your password to ensure you typed it correctly.',
                           validator: (v) {
-                            if (v == null || v.isEmpty) return 'Confirm your password';
+                            if (v == null || v.isEmpty) return 'Please confirm your password';
                             if (v != _passwordController.text) return 'Passwords do not match';
                             return null;
                           },
