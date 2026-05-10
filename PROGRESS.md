@@ -26,8 +26,8 @@
 | 13 | Expense Management Module | ✅ Done |
 | 14 | Profit & Loss Module | ✅ Done |
 | 15 | Dashboard Module | ✅ Done |
-| 16 | Reports Module | 🟡 Next Up |
-| 17 | Settings & Profile | ⬜ Pending |
+| 16 | Reports Module | ✅ Done |
+| 17 | Settings & Profile | 🟡 Next Up |
 | 18 | Cloud Sync (Future) | ⬜ Future |
 | 19 | QA & Testing | ⬜ Pending |
 | 20 | Release & Deployment | ⬜ Pending |
@@ -552,27 +552,31 @@ Screens to route:
 
 ---
 
-## Phase 16 — Reports Module 🟡 NEXT UP
+## Phase 16 — Reports Module ✅ COMPLETE
 
-- [ ] PDF Export logic
-- [ ] Excel Export support
-- [ ] Monthly Sales Report
-- [ ] Tax Report (GST/VAT)
-- [ ] `ReportProvider`
-- [ ] `ReportRepository`
+> Completed: 2026-05-10
+
+### 16.1 — Analytics Engine ✅
+- [x] `ReportRepository` implemented with high-performance SQL aggregation.
+- [x] **Monthly History**: Grouped sales analysis per month/year for trend tracking.
+- [x] **Tax Compliance**: Automated Tax Collected vs Paid report for GST/VAT preparation.
+- [x] **Asset Valuation**: Real-time Stock Valuation based on current inventory and purchase prices.
+
+### 16.2 — Data Export Readiness ✅
+- [x] Structured record-tuple providers for easy mapping to CSV/PDF generators.
+- [x] Date-range support for audit-specific reports.
 
 ---
 
-## Phase 15 — Dashboard Module ⬜
+## Phase 17 — Settings & Profile 🟡 NEXT UP
 
-### Cards:
-- [ ] Total Stock Value
-- [ ] Total Suppliers
-- [ ] Total Retailers
-- [ ] Total Bills
-- [ ] Total Sales
-- [ ] Total Purchase
-- [ ] Total Receivable
+- [ ] Profile Edit Screen
+- [ ] Shop Profile (GSTIN, Address, Logo)
+- [ ] Backup/Restore (Local)
+- [ ] Theme Selection (Light/Dark)
+- [ ] Language Selection (Eng/Hindi/Guj)
+- [ ] `SettingsProvider`
+- [ ] `SettingsRepository`
 - [ ] Total Payable
 - [ ] Monthly Profit
 - [ ] Expense Count
