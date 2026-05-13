@@ -41,6 +41,24 @@ This document tracks the status of all functional and integration test cases for
 | LEDG-001 | Auto-Generation | Verify ledger entry creation on Bill Save | ✅ Verified | 2026-05-13 |
 | LEDG-002 | Debit/Credit Logic | Supplier (Purchase) vs Retailer (Sales) signs | ✅ Verified | 2026-05-13 |
 | LEDG-003 | History View | List all transactions for a specific party | ✅ Verified | 2026-05-13 |
+| BILL-004 | Multi-Supplier Management | Verify multiple suppliers can coexist with independent bills | ✅ Verified | 2026-05-13 |
+| BILL-005 | Bill History & Persistence | Ensure bills are saved and retrievable after restart | ✅ Verified | 2026-05-13 |
+| PARTY-005 | Role-Specific Filtering | Retailers vs Suppliers separation in dropdowns | ✅ Verified | 2026-05-13 |
+| LEDGER-001 | Auto-Ledger on Purchase | Verify purchase bill creates debit/credit entry correctly | ✅ Verified | 2026-05-13 |
+| LEDGER-002 | Auto-Ledger on Sales | Verify sales bill updates customer balance | ✅ Verified | 2026-05-13 |
+| AUTH-003 | Multi-User Isolation | Ensure User A cannot see User B's shop data | ✅ Verified | 2026-05-13 |
+
+### 🧶 Fabric & Cloth Specific Business Logic (Pending Implementation/Verification)
+| ID | Test Case | Description | Status |
+|----|-----------|-------------|--------|
+| CLOTH-001 | Palav Matching | Show related fabric/matching material for selected cloth | ⏳ Pending Logic |
+| CLOTH-002 | Related Products | Display suggestions based on matching attributes | ⏳ Pending Logic |
+
+### 🚀 Production Readiness
+| ID | Test Case | Description | Status |
+|----|-----------|-------------|--------|
+| SYNC-001 | Offline Persistence | Verify data is saved to SQLite even without network | ✅ Verified |
+| UI-001 | Responsive Design | Verify glassmorphism UI scales on different screens | ✅ Verified |
 
 ## 6. Offline & Data Integrity
 | Test Case ID | Feature | Description | Status | Last Verified |

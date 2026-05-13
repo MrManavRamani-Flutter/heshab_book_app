@@ -101,6 +101,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           const SizedBox(height: 24),
                         ],
                         AuthFormField(
+                          key: const ValueKey('mobile_field'),
                           label: 'Email or Mobile',
                           hint: 'e.g. 9876543210',
                           prefixIcon: Icons.email_outlined,
@@ -114,6 +115,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ),
                         const SizedBox(height: 16),
                         AuthFormField(
+                          key: const ValueKey('password_field'),
                           label: 'Password',
                           hint: 'Enter your password',
                           prefixIcon: Icons.lock_outline,

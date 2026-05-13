@@ -73,6 +73,7 @@ class _AuthFormFieldState extends State<AuthFormField> {
   @override
   Widget build(BuildContext context) {
     return TextFormField(
+      key: widget.key,
       controller: widget.controller,
       obscureText: widget.isPassword && _obscureText,
       keyboardType: widget.keyboardType,
