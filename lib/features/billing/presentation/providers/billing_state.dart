@@ -20,6 +20,7 @@ class CartItem with _$CartItem {
 class BillingState with _$BillingState {
   const factory BillingState({
     @Default([]) List<CartItem> items,
+    @Default([]) List<Product> suggestions,
     int? selectedPartyId, // supplier or retailer
     @Default('sales') String billType,
     @Default(0.0) double discountAmount,

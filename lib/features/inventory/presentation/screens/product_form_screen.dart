@@ -32,6 +32,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
   final _retailPriceController = TextEditingController(text: '0');
   final _minStockController = TextEditingController(text: '5');
   final _openingStockController = TextEditingController(text: '0');
+  final _matchingCodeController = TextEditingController();
 
   int? _selectedCategoryId;
   int? _selectedUnitId;
@@ -47,6 +48,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
     _retailPriceController.dispose();
     _minStockController.dispose();
     _openingStockController.dispose();
+    _matchingCodeController.dispose();
     super.dispose();
   }
 
@@ -68,6 +70,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
     _openingStockController.text = product.currentStock.toString();
     _selectedCategoryId = product.categoryId;
     _selectedUnitId = product.unitId;
+    _matchingCodeController.text = product.matchingCode ?? '';
   }
 
   Future<void> _save() async {
@@ -91,6 +94,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
           minimumStockAlert: double.tryParse(_minStockController.text) ?? 5,
           categoryId: _selectedCategoryId,
           unitId: _selectedUnitId,
+          matchingCode: _matchingCodeController.text.trim().isEmpty ? null : _matchingCodeController.text.trim(),
         );
       } else {
         await productRepo.createProduct(
@@ -103,6 +107,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
           minimumStockAlert: double.tryParse(_minStockController.text) ?? 5,
           categoryId: _selectedCategoryId,
           unitId: _selectedUnitId,
+          matchingCode: _matchingCodeController.text.trim().isEmpty ? null : _matchingCodeController.text.trim(),
         );
       }
 
@@ -260,6 +265,16 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                         decoration: const InputDecoration(
                           labelText: 'Product Code / Barcode',
                           prefixIcon: Icon(Icons.qr_code_scanner),
+                        ),
+                      ),
+                      SizedBox(height: 16.h),
+                      TextFormField(
+                        key: const ValueKey('matchingCodeField'),
+                        controller: _matchingCodeController,
+                        decoration: const InputDecoration(
+                          labelText: 'Matching Code (Palav/Set)',
+                          prefixIcon: Icon(Icons.link_outlined),
+                          helperText: 'Link related items (e.g. Saree & Blouse)',
                         ),
                       ),
                     ],

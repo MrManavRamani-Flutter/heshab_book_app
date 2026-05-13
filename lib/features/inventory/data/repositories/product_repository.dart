@@ -57,6 +57,7 @@ class ProductRepository {
     double openingStock = 0.0,
     double minimumStockAlert = 5.0,
     String? imagePath,
+    String? matchingCode,
   }) async {
     return _db.transaction(() async {
       final now = DateTime.now();
@@ -78,6 +79,7 @@ class ProductRepository {
               currentStock: Value(openingStock), // Initial cache
               minimumStockAlert: Value(minimumStockAlert),
               imagePath: Value(imagePath),
+              matchingCode: Value(matchingCode),
               createdAt: Value(now),
               updatedAt: Value(now),
             ),
@@ -120,6 +122,7 @@ class ProductRepository {
     double? minimumStockAlert,
     bool? isActive,
     String? imagePath,
+    String? matchingCode,
   }) async {
     final now = DateTime.now();
     final result = await (_db.update(_db.products)..where((p) => p.id.equals(id))).write(
@@ -136,6 +139,7 @@ class ProductRepository {
             minimumStockAlert: minimumStockAlert != null ? Value(minimumStockAlert) : const Value.absent(),
             isActive: isActive != null ? Value(isActive) : const Value.absent(),
             imagePath: imagePath != null ? Value(imagePath) : const Value.absent(),
+            matchingCode: matchingCode != null ? Value(matchingCode) : const Value.absent(),
             updatedAt: Value(now),
           ),
         );
@@ -152,5 +156,16 @@ class ProductRepository {
             updatedAt: Value(now),
           ),
         );
+  }
+
+  /// Get products with same matching code (excluding self)
+  Future<List<Product>> getMatchingProducts(int shopId, String matchingCode, int excludeProductId) {
+    if (matchingCode.isEmpty) return Future.value([]);
+    return (_db.select(_db.products)
+          ..where((p) => p.shopId.equals(shopId))
+          ..where((p) => p.isDeleted.equals(false))
+          ..where((p) => p.matchingCode.equals(matchingCode))
+          ..where((p) => p.id.notEquals(excludeProductId)))
+        .get();
   }
 }

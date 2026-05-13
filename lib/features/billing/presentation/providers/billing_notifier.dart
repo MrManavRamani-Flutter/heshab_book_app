@@ -24,7 +24,7 @@ class BillingNotifier extends _$BillingNotifier {
     state = state.copyWith(selectedPartyId: partyId);
   }
 
-  void addItem(Product product, double quantity, double rate) {
+  void addItem(Product product, double quantity, double rate) async {
     final existingIndex = state.items.indexWhere((item) => item.product.id == product.id);
     
     if (existingIndex != -1) {
@@ -46,6 +46,18 @@ class BillingNotifier extends _$BillingNotifier {
         total: quantity * rate,
       );
       state = state.copyWith(items: [...state.items, newItem]);
+    }
+
+    // Fetch suggestions based on matching code
+    if (product.matchingCode != null && product.matchingCode!.isNotEmpty) {
+      final shop = ref.read(activeShopProvider);
+      if (shop != null) {
+        final productRepo = ref.read(productRepositoryProvider);
+        final matches = await productRepo.getMatchingProducts(shop.id, product.matchingCode!, product.id);
+        state = state.copyWith(suggestions: matches);
+      }
+    } else {
+      state = state.copyWith(suggestions: []);
     }
   }
 

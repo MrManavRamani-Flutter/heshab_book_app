@@ -40,6 +40,9 @@ class Products extends Table {
   RealColumn get currentStock => real().withDefault(const Constant(0.0))();
   RealColumn get minimumStockAlert => real().withDefault(const Constant(5.0))();
 
+  // Fabric Matching (Palav, Blouse, etc)
+  TextColumn get matchingCode => text().nullable()();
+
   // Status
   BoolColumn get isActive => boolean().withDefault(const Constant(true))();
   TextColumn get imagePath => text().nullable()();

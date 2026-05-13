@@ -51,8 +51,8 @@ This document tracks the status of all functional and integration test cases for
 ### 🧶 Fabric & Cloth Specific Business Logic (Pending Implementation/Verification)
 | ID | Test Case | Description | Status |
 |----|-----------|-------------|--------|
-| CLOTH-001 | Palav Matching | Show related fabric/matching material for selected cloth | ⏳ Pending Logic |
-| CLOTH-002 | Related Products | Display suggestions based on matching attributes | ⏳ Pending Logic |
+| CLOTH-001 | Palav Matching | Show related fabric/matching material for selected cloth | ✅ Implemented |
+| CLOTH-002 | Related Products | Display suggestions based on matching attributes | ✅ Implemented |
 
 ### 🚀 Production Readiness
 | ID | Test Case | Description | Status |

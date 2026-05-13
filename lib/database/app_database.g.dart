@@ -3923,6 +3923,17 @@ class $ProductsTable extends Products with TableInfo<$ProductsTable, Product> {
         requiredDuringInsert: false,
         defaultValue: const Constant(5.0),
       );
+  static const VerificationMeta _matchingCodeMeta = const VerificationMeta(
+    'matchingCode',
+  );
+  @override
+  late final GeneratedColumn<String> matchingCode = GeneratedColumn<String>(
+    'matching_code',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _isActiveMeta = const VerificationMeta(
     'isActive',
   );
@@ -3972,6 +3983,7 @@ class $ProductsTable extends Products with TableInfo<$ProductsTable, Product> {
     customPrice,
     currentStock,
     minimumStockAlert,
+    matchingCode,
     isActive,
     imagePath,
   ];
@@ -4140,6 +4152,15 @@ class $ProductsTable extends Products with TableInfo<$ProductsTable, Product> {
         ),
       );
     }
+    if (data.containsKey('matching_code')) {
+      context.handle(
+        _matchingCodeMeta,
+        matchingCode.isAcceptableOrUnknown(
+          data['matching_code']!,
+          _matchingCodeMeta,
+        ),
+      );
+    }
     if (data.containsKey('is_active')) {
       context.handle(
         _isActiveMeta,
@@ -4245,6 +4266,10 @@ class $ProductsTable extends Products with TableInfo<$ProductsTable, Product> {
         DriftSqlType.double,
         data['${effectivePrefix}minimum_stock_alert'],
       )!,
+      matchingCode: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}matching_code'],
+      ),
       isActive: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
         data['${effectivePrefix}is_active'],
@@ -4284,6 +4309,7 @@ class Product extends DataClass implements Insertable<Product> {
   final double customPrice;
   final double currentStock;
   final double minimumStockAlert;
+  final String? matchingCode;
   final bool isActive;
   final String? imagePath;
   const Product({
@@ -4308,6 +4334,7 @@ class Product extends DataClass implements Insertable<Product> {
     required this.customPrice,
     required this.currentStock,
     required this.minimumStockAlert,
+    this.matchingCode,
     required this.isActive,
     this.imagePath,
   });
@@ -4349,6 +4376,9 @@ class Product extends DataClass implements Insertable<Product> {
     map['custom_price'] = Variable<double>(customPrice);
     map['current_stock'] = Variable<double>(currentStock);
     map['minimum_stock_alert'] = Variable<double>(minimumStockAlert);
+    if (!nullToAbsent || matchingCode != null) {
+      map['matching_code'] = Variable<String>(matchingCode);
+    }
     map['is_active'] = Variable<bool>(isActive);
     if (!nullToAbsent || imagePath != null) {
       map['image_path'] = Variable<String>(imagePath);
@@ -4391,6 +4421,9 @@ class Product extends DataClass implements Insertable<Product> {
       customPrice: Value(customPrice),
       currentStock: Value(currentStock),
       minimumStockAlert: Value(minimumStockAlert),
+      matchingCode: matchingCode == null && nullToAbsent
+          ? const Value.absent()
+          : Value(matchingCode),
       isActive: Value(isActive),
       imagePath: imagePath == null && nullToAbsent
           ? const Value.absent()
@@ -4425,6 +4458,7 @@ class Product extends DataClass implements Insertable<Product> {
       customPrice: serializer.fromJson<double>(json['customPrice']),
       currentStock: serializer.fromJson<double>(json['currentStock']),
       minimumStockAlert: serializer.fromJson<double>(json['minimumStockAlert']),
+      matchingCode: serializer.fromJson<String?>(json['matchingCode']),
       isActive: serializer.fromJson<bool>(json['isActive']),
       imagePath: serializer.fromJson<String?>(json['imagePath']),
     );
@@ -4454,6 +4488,7 @@ class Product extends DataClass implements Insertable<Product> {
       'customPrice': serializer.toJson<double>(customPrice),
       'currentStock': serializer.toJson<double>(currentStock),
       'minimumStockAlert': serializer.toJson<double>(minimumStockAlert),
+      'matchingCode': serializer.toJson<String?>(matchingCode),
       'isActive': serializer.toJson<bool>(isActive),
       'imagePath': serializer.toJson<String?>(imagePath),
     };
@@ -4481,6 +4516,7 @@ class Product extends DataClass implements Insertable<Product> {
     double? customPrice,
     double? currentStock,
     double? minimumStockAlert,
+    Value<String?> matchingCode = const Value.absent(),
     bool? isActive,
     Value<String?> imagePath = const Value.absent(),
   }) => Product(
@@ -4507,6 +4543,7 @@ class Product extends DataClass implements Insertable<Product> {
     customPrice: customPrice ?? this.customPrice,
     currentStock: currentStock ?? this.currentStock,
     minimumStockAlert: minimumStockAlert ?? this.minimumStockAlert,
+    matchingCode: matchingCode.present ? matchingCode.value : this.matchingCode,
     isActive: isActive ?? this.isActive,
     imagePath: imagePath.present ? imagePath.value : this.imagePath,
   );
@@ -4553,6 +4590,9 @@ class Product extends DataClass implements Insertable<Product> {
       minimumStockAlert: data.minimumStockAlert.present
           ? data.minimumStockAlert.value
           : this.minimumStockAlert,
+      matchingCode: data.matchingCode.present
+          ? data.matchingCode.value
+          : this.matchingCode,
       isActive: data.isActive.present ? data.isActive.value : this.isActive,
       imagePath: data.imagePath.present ? data.imagePath.value : this.imagePath,
     );
@@ -4582,6 +4622,7 @@ class Product extends DataClass implements Insertable<Product> {
           ..write('customPrice: $customPrice, ')
           ..write('currentStock: $currentStock, ')
           ..write('minimumStockAlert: $minimumStockAlert, ')
+          ..write('matchingCode: $matchingCode, ')
           ..write('isActive: $isActive, ')
           ..write('imagePath: $imagePath')
           ..write(')'))
@@ -4611,6 +4652,7 @@ class Product extends DataClass implements Insertable<Product> {
     customPrice,
     currentStock,
     minimumStockAlert,
+    matchingCode,
     isActive,
     imagePath,
   ]);
@@ -4639,6 +4681,7 @@ class Product extends DataClass implements Insertable<Product> {
           other.customPrice == this.customPrice &&
           other.currentStock == this.currentStock &&
           other.minimumStockAlert == this.minimumStockAlert &&
+          other.matchingCode == this.matchingCode &&
           other.isActive == this.isActive &&
           other.imagePath == this.imagePath);
 }
@@ -4665,6 +4708,7 @@ class ProductsCompanion extends UpdateCompanion<Product> {
   final Value<double> customPrice;
   final Value<double> currentStock;
   final Value<double> minimumStockAlert;
+  final Value<String?> matchingCode;
   final Value<bool> isActive;
   final Value<String?> imagePath;
   const ProductsCompanion({
@@ -4689,6 +4733,7 @@ class ProductsCompanion extends UpdateCompanion<Product> {
     this.customPrice = const Value.absent(),
     this.currentStock = const Value.absent(),
     this.minimumStockAlert = const Value.absent(),
+    this.matchingCode = const Value.absent(),
     this.isActive = const Value.absent(),
     this.imagePath = const Value.absent(),
   });
@@ -4714,6 +4759,7 @@ class ProductsCompanion extends UpdateCompanion<Product> {
     this.customPrice = const Value.absent(),
     this.currentStock = const Value.absent(),
     this.minimumStockAlert = const Value.absent(),
+    this.matchingCode = const Value.absent(),
     this.isActive = const Value.absent(),
     this.imagePath = const Value.absent(),
   }) : uuid = Value(uuid),
@@ -4741,6 +4787,7 @@ class ProductsCompanion extends UpdateCompanion<Product> {
     Expression<double>? customPrice,
     Expression<double>? currentStock,
     Expression<double>? minimumStockAlert,
+    Expression<String>? matchingCode,
     Expression<bool>? isActive,
     Expression<String>? imagePath,
   }) {
@@ -4766,6 +4813,7 @@ class ProductsCompanion extends UpdateCompanion<Product> {
       if (customPrice != null) 'custom_price': customPrice,
       if (currentStock != null) 'current_stock': currentStock,
       if (minimumStockAlert != null) 'minimum_stock_alert': minimumStockAlert,
+      if (matchingCode != null) 'matching_code': matchingCode,
       if (isActive != null) 'is_active': isActive,
       if (imagePath != null) 'image_path': imagePath,
     });
@@ -4793,6 +4841,7 @@ class ProductsCompanion extends UpdateCompanion<Product> {
     Value<double>? customPrice,
     Value<double>? currentStock,
     Value<double>? minimumStockAlert,
+    Value<String?>? matchingCode,
     Value<bool>? isActive,
     Value<String?>? imagePath,
   }) {
@@ -4818,6 +4867,7 @@ class ProductsCompanion extends UpdateCompanion<Product> {
       customPrice: customPrice ?? this.customPrice,
       currentStock: currentStock ?? this.currentStock,
       minimumStockAlert: minimumStockAlert ?? this.minimumStockAlert,
+      matchingCode: matchingCode ?? this.matchingCode,
       isActive: isActive ?? this.isActive,
       imagePath: imagePath ?? this.imagePath,
     );
@@ -4889,6 +4939,9 @@ class ProductsCompanion extends UpdateCompanion<Product> {
     if (minimumStockAlert.present) {
       map['minimum_stock_alert'] = Variable<double>(minimumStockAlert.value);
     }
+    if (matchingCode.present) {
+      map['matching_code'] = Variable<String>(matchingCode.value);
+    }
     if (isActive.present) {
       map['is_active'] = Variable<bool>(isActive.value);
     }
@@ -4922,6 +4975,7 @@ class ProductsCompanion extends UpdateCompanion<Product> {
           ..write('customPrice: $customPrice, ')
           ..write('currentStock: $currentStock, ')
           ..write('minimumStockAlert: $minimumStockAlert, ')
+          ..write('matchingCode: $matchingCode, ')
           ..write('isActive: $isActive, ')
           ..write('imagePath: $imagePath')
           ..write(')'))
@@ -17630,6 +17684,7 @@ typedef $$ProductsTableCreateCompanionBuilder =
       Value<double> customPrice,
       Value<double> currentStock,
       Value<double> minimumStockAlert,
+      Value<String?> matchingCode,
       Value<bool> isActive,
       Value<String?> imagePath,
     });
@@ -17656,6 +17711,7 @@ typedef $$ProductsTableUpdateCompanionBuilder =
       Value<double> customPrice,
       Value<double> currentStock,
       Value<double> minimumStockAlert,
+      Value<String?> matchingCode,
       Value<bool> isActive,
       Value<String?> imagePath,
     });
@@ -17854,6 +17910,11 @@ class $$ProductsTableFilterComposer
 
   ColumnFilters<double> get minimumStockAlert => $composableBuilder(
     column: $table.minimumStockAlert,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get matchingCode => $composableBuilder(
+    column: $table.matchingCode,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -18079,6 +18140,11 @@ class $$ProductsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get matchingCode => $composableBuilder(
+    column: $table.matchingCode,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<bool> get isActive => $composableBuilder(
     column: $table.isActive,
     builder: (column) => ColumnOrderings(column),
@@ -18255,6 +18321,11 @@ class $$ProductsTableAnnotationComposer
 
   GeneratedColumn<double> get minimumStockAlert => $composableBuilder(
     column: $table.minimumStockAlert,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get matchingCode => $composableBuilder(
+    column: $table.matchingCode,
     builder: (column) => column,
   );
 
@@ -18438,6 +18509,7 @@ class $$ProductsTableTableManager
                 Value<double> customPrice = const Value.absent(),
                 Value<double> currentStock = const Value.absent(),
                 Value<double> minimumStockAlert = const Value.absent(),
+                Value<String?> matchingCode = const Value.absent(),
                 Value<bool> isActive = const Value.absent(),
                 Value<String?> imagePath = const Value.absent(),
               }) => ProductsCompanion(
@@ -18462,6 +18534,7 @@ class $$ProductsTableTableManager
                 customPrice: customPrice,
                 currentStock: currentStock,
                 minimumStockAlert: minimumStockAlert,
+                matchingCode: matchingCode,
                 isActive: isActive,
                 imagePath: imagePath,
               ),
@@ -18488,6 +18561,7 @@ class $$ProductsTableTableManager
                 Value<double> customPrice = const Value.absent(),
                 Value<double> currentStock = const Value.absent(),
                 Value<double> minimumStockAlert = const Value.absent(),
+                Value<String?> matchingCode = const Value.absent(),
                 Value<bool> isActive = const Value.absent(),
                 Value<String?> imagePath = const Value.absent(),
               }) => ProductsCompanion.insert(
@@ -18512,6 +18586,7 @@ class $$ProductsTableTableManager
                 customPrice: customPrice,
                 currentStock: currentStock,
                 minimumStockAlert: minimumStockAlert,
+                matchingCode: matchingCode,
                 isActive: isActive,
                 imagePath: imagePath,
               ),

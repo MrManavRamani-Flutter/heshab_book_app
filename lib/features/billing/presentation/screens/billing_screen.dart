@@ -47,13 +47,21 @@ class BillingScreen extends ConsumerWidget {
             Expanded(
               child: billingState.items.isEmpty
                   ? _buildEmptyCart(context)
-                  : ListView.builder(
-                      padding: EdgeInsets.all(16.w),
-                      itemCount: billingState.items.length,
-                      itemBuilder: (context, index) {
-                        final item = billingState.items[index];
-                        return _buildCartItem(context, item, billingNotifier);
-                      },
+                  : Column(
+                      children: [
+                        Expanded(
+                          child: ListView.builder(
+                            padding: EdgeInsets.all(16.w),
+                            itemCount: billingState.items.length,
+                            itemBuilder: (context, index) {
+                              final item = billingState.items[index];
+                              return _buildCartItem(context, item, billingNotifier);
+                            },
+                          ),
+                        ),
+                        if (billingState.suggestions.isNotEmpty)
+                          _buildSuggestions(context, billingState, billingNotifier),
+                      ],
                     ),
             ),
 
@@ -257,6 +265,61 @@ class BillingScreen extends ConsumerWidget {
             );
           },
         ),
+      ),
+    );
+  }
+
+  Widget _buildSuggestions(BuildContext context, dynamic state, dynamic notifier) {
+    return Container(
+      height: 120.h,
+      padding: EdgeInsets.symmetric(vertical: 10.h),
+      decoration: BoxDecoration(
+        color: AppColors.primary.withValues(alpha: 0.05),
+        border: const Border(top: BorderSide(color: AppColors.glassBorder)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.w),
+            child: Text(
+              'MATCHING ITEMS (PALAV/SET)',
+              style: TextStyle(fontSize: 10.sp, fontWeight: FontWeight.bold, color: AppColors.primary),
+            ),
+          ),
+          SizedBox(height: 8.h),
+          Expanded(
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              padding: EdgeInsets.symmetric(horizontal: 12.w),
+              itemCount: state.suggestions.length,
+              itemBuilder: (context, index) {
+                final p = state.suggestions[index];
+                return Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 4.w),
+                  child: GlassCard(
+                    padding: EdgeInsets.zero,
+                    child: InkWell(
+                      onTap: () => notifier.addItem(p, 1, p.retailPrice),
+                      child: Container(
+                        width: 150.w,
+                        padding: EdgeInsets.all(8.w),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(p.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold)),
+                            Text('₹${p.retailPrice}', style: TextStyle(fontSize: 11.sp, color: AppColors.accent)),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }

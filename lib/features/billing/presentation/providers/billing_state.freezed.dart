@@ -248,6 +248,7 @@ abstract class _CartItem implements CartItem {
 /// @nodoc
 mixin _$BillingState {
   List<CartItem> get items => throw _privateConstructorUsedError;
+  List<Product> get suggestions => throw _privateConstructorUsedError;
   int? get selectedPartyId =>
       throw _privateConstructorUsedError; // supplier or retailer
   String get billType => throw _privateConstructorUsedError;
@@ -273,6 +274,7 @@ abstract class $BillingStateCopyWith<$Res> {
   @useResult
   $Res call({
     List<CartItem> items,
+    List<Product> suggestions,
     int? selectedPartyId,
     String billType,
     double discountAmount,
@@ -299,6 +301,7 @@ class _$BillingStateCopyWithImpl<$Res, $Val extends BillingState>
   @override
   $Res call({
     Object? items = null,
+    Object? suggestions = null,
     Object? selectedPartyId = freezed,
     Object? billType = null,
     Object? discountAmount = null,
@@ -313,6 +316,10 @@ class _$BillingStateCopyWithImpl<$Res, $Val extends BillingState>
                 ? _value.items
                 : items // ignore: cast_nullable_to_non_nullable
                       as List<CartItem>,
+            suggestions: null == suggestions
+                ? _value.suggestions
+                : suggestions // ignore: cast_nullable_to_non_nullable
+                      as List<Product>,
             selectedPartyId: freezed == selectedPartyId
                 ? _value.selectedPartyId
                 : selectedPartyId // ignore: cast_nullable_to_non_nullable
@@ -358,6 +365,7 @@ abstract class _$$BillingStateImplCopyWith<$Res>
   @useResult
   $Res call({
     List<CartItem> items,
+    List<Product> suggestions,
     int? selectedPartyId,
     String billType,
     double discountAmount,
@@ -383,6 +391,7 @@ class __$$BillingStateImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? items = null,
+    Object? suggestions = null,
     Object? selectedPartyId = freezed,
     Object? billType = null,
     Object? discountAmount = null,
@@ -397,6 +406,10 @@ class __$$BillingStateImplCopyWithImpl<$Res>
             ? _value._items
             : items // ignore: cast_nullable_to_non_nullable
                   as List<CartItem>,
+        suggestions: null == suggestions
+            ? _value._suggestions
+            : suggestions // ignore: cast_nullable_to_non_nullable
+                  as List<Product>,
         selectedPartyId: freezed == selectedPartyId
             ? _value.selectedPartyId
             : selectedPartyId // ignore: cast_nullable_to_non_nullable
@@ -435,6 +448,7 @@ class __$$BillingStateImplCopyWithImpl<$Res>
 class _$BillingStateImpl extends _BillingState {
   const _$BillingStateImpl({
     final List<CartItem> items = const [],
+    final List<Product> suggestions = const [],
     this.selectedPartyId,
     this.billType = 'sales',
     this.discountAmount = 0.0,
@@ -443,6 +457,7 @@ class _$BillingStateImpl extends _BillingState {
     this.isLoading = false,
     this.errorMessage,
   }) : _items = items,
+       _suggestions = suggestions,
        super._();
 
   final List<CartItem> _items;
@@ -452,6 +467,15 @@ class _$BillingStateImpl extends _BillingState {
     if (_items is EqualUnmodifiableListView) return _items;
     // ignore: implicit_dynamic_type
     return EqualUnmodifiableListView(_items);
+  }
+
+  final List<Product> _suggestions;
+  @override
+  @JsonKey()
+  List<Product> get suggestions {
+    if (_suggestions is EqualUnmodifiableListView) return _suggestions;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_suggestions);
   }
 
   @override
@@ -477,7 +501,7 @@ class _$BillingStateImpl extends _BillingState {
 
   @override
   String toString() {
-    return 'BillingState(items: $items, selectedPartyId: $selectedPartyId, billType: $billType, discountAmount: $discountAmount, taxAmount: $taxAmount, paidAmount: $paidAmount, isLoading: $isLoading, errorMessage: $errorMessage)';
+    return 'BillingState(items: $items, suggestions: $suggestions, selectedPartyId: $selectedPartyId, billType: $billType, discountAmount: $discountAmount, taxAmount: $taxAmount, paidAmount: $paidAmount, isLoading: $isLoading, errorMessage: $errorMessage)';
   }
 
   @override
@@ -486,6 +510,10 @@ class _$BillingStateImpl extends _BillingState {
         (other.runtimeType == runtimeType &&
             other is _$BillingStateImpl &&
             const DeepCollectionEquality().equals(other._items, _items) &&
+            const DeepCollectionEquality().equals(
+              other._suggestions,
+              _suggestions,
+            ) &&
             (identical(other.selectedPartyId, selectedPartyId) ||
                 other.selectedPartyId == selectedPartyId) &&
             (identical(other.billType, billType) ||
@@ -506,6 +534,7 @@ class _$BillingStateImpl extends _BillingState {
   int get hashCode => Object.hash(
     runtimeType,
     const DeepCollectionEquality().hash(_items),
+    const DeepCollectionEquality().hash(_suggestions),
     selectedPartyId,
     billType,
     discountAmount,
@@ -527,6 +556,7 @@ class _$BillingStateImpl extends _BillingState {
 abstract class _BillingState extends BillingState {
   const factory _BillingState({
     final List<CartItem> items,
+    final List<Product> suggestions,
     final int? selectedPartyId,
     final String billType,
     final double discountAmount,
@@ -539,6 +569,8 @@ abstract class _BillingState extends BillingState {
 
   @override
   List<CartItem> get items;
+  @override
+  List<Product> get suggestions;
   @override
   int? get selectedPartyId; // supplier or retailer
   @override
