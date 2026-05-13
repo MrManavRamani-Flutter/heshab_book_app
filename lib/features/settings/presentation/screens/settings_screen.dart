@@ -1,10 +1,7 @@
 // lib/features/settings/presentation/screens/settings_screen.dart
 
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../config/routes/route_names.dart';
-
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
@@ -17,15 +14,7 @@ class SettingsScreen extends StatelessWidget {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            _buildSectionHeader('Cloud & Backup'),
-            ListTile(
-              leading: const Icon(Icons.cloud_upload_outlined, color: AppColors.primary),
-              title: const Text('Google Drive Backup'),
-              subtitle: const Text('Manage your 5TB cloud storage'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => context.go(RouteNames.cloudSync),
-            ),
-            const SizedBox(height: 24),
+
             _buildSectionHeader('Account'),
             ListTile(
               leading: const Icon(Icons.person_outline, color: AppColors.accent),

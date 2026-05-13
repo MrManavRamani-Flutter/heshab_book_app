@@ -63,6 +63,7 @@ class BillingScreen extends ConsumerWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
+        key: const ValueKey('addItemButton'),
         onPressed: () => _showProductPicker(context, ref, billingNotifier),
         label: const Text('Add Item'),
         icon: const Icon(Icons.add_shopping_cart),
@@ -84,6 +85,7 @@ class BillingScreen extends ConsumerWidget {
           children: [
             partiesAsync.when(
               data: (parties) => DropdownButtonFormField<int>(
+                key: const ValueKey('partyDropdown'),
                 initialValue: state.selectedPartyId,
                 decoration: InputDecoration(
                   labelText: state.billType == 'sales' ? 'Select Customer' : 'Select Supplier',
@@ -171,6 +173,7 @@ class BillingScreen extends ConsumerWidget {
             width: double.infinity,
             height: 50.h,
             child: ElevatedButton(
+              key: const ValueKey('saveBillButton'),
               onPressed: state.isLoading ? null : () async {
                 final success = await notifier.saveBill();
                 if (success && context.mounted) {
@@ -235,6 +238,7 @@ class BillingScreen extends ConsumerWidget {
                       itemBuilder: (context, index) {
                         final p = products[index];
                         return ListTile(
+                          key: ValueKey('productItem_${p.id}'),
                           title: Text(p.name),
                           subtitle: Text('Stock: ${p.currentStock}'),
                           trailing: Text('₹${p.retailPrice}'),

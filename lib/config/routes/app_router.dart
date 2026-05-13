@@ -20,8 +20,8 @@ import '../../features/billing/presentation/screens/billing_screen.dart';
 import '../../features/inventory/presentation/screens/product_list_screen.dart';
 import '../../features/inventory/presentation/screens/product_form_screen.dart';
 import '../../features/parties/presentation/screens/parties_screen.dart';
+import '../../features/parties/presentation/screens/party_form_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
-import '../../features/settings/presentation/screens/cloud_sync_screen.dart';
 import '../../core/widgets/main_screen.dart';
 
 // ── Router Notifier (bridges Riverpod → GoRouter refresh) ─────────────────
@@ -105,6 +105,21 @@ final routerProvider = Provider<GoRouter>((ref) {
     // ── Routes ─────────────────────────────────────────────────────────────
     routes: [
       GoRoute(
+        path: '/test',
+        builder: (context, state) => const ProductFormScreen(),
+      ),
+      GoRoute(
+        path: RouteNames.productsAdd,
+        builder: (context, state) => const ProductFormScreen(),
+      ),
+      GoRoute(
+        path: RouteNames.productsEdit,
+        builder: (context, state) {
+          final id = int.tryParse(state.pathParameters['id'] ?? '');
+          return ProductFormScreen(productId: id);
+        },
+      ),
+      GoRoute(
         path: RouteNames.splash,
         builder: (context, state) => const SplashScreen(),
       ),
@@ -119,6 +134,14 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: RouteNames.shopSetup,
         builder: (context, state) => const ShopSetupScreen(),
+      ),
+      GoRoute(
+        path: '/add-party',
+        builder: (context, state) {
+          final typeString = state.uri.queryParameters['type'] ?? 'customer';
+          final type = typeString == 'supplier' ? PartyType.supplier : PartyType.customer;
+          return PartyFormScreen(initialType: type);
+        },
       ),
 
       // ── Main Shell ───────────────────────────────────────────────────────
@@ -140,12 +163,6 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: RouteNames.products,
                 builder: (context, state) => const ProductListScreen(),
-                routes: [
-                  GoRoute(
-                    path: 'add', // Relative to /products
-                    builder: (context, state) => const ProductFormScreen(),
-                  ),
-                ],
               ),
             ],
           ),
@@ -173,12 +190,6 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: RouteNames.settings,
                 builder: (context, state) => const SettingsScreen(),
-                routes: [
-                  GoRoute(
-                    path: 'sync',
-                    builder: (context, state) => const CloudSyncScreen(),
-                  ),
-                ],
               ),
             ],
           ),
@@ -194,7 +205,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             const Icon(Icons.error_outline, size: 64, color: Colors.red),
             const SizedBox(height: 16),
             Text(
-              'Page Not Found',
+              'Page Not Found: ${state.uri.path}',
               style: Theme.of(context).textTheme.headlineMedium,
             ),
             const SizedBox(height: 24),

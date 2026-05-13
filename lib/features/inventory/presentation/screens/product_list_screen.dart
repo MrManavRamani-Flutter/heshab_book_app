@@ -51,6 +51,7 @@ class ProductListScreen extends ConsumerWidget {
         onPressed: () => context.push(RouteNames.productsAdd),
         label: const Text('Add Product'),
         icon: const Icon(Icons.add),
+        heroTag: 'addProductFab',
         backgroundColor: AppColors.primary,
       ),
     );
@@ -84,67 +85,74 @@ class ProductListScreen extends ConsumerWidget {
     return Padding(
       padding: EdgeInsets.only(bottom: 12.h),
       child: GlassCard(
-        padding: EdgeInsets.all(12.w),
-        child: Row(
-          children: [
-            // Product Image Placeholder
-            Container(
-              width: 60.w,
-              height: 60.w,
-              decoration: BoxDecoration(
-                color: AppColors.surfaceLight,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Icon(Icons.image_outlined, color: AppColors.textMuted),
-            ),
-            SizedBox(width: 16.w),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    product.name,
-                    style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
+        padding: EdgeInsets.zero,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(20),
+          onTap: () => context.push(RouteNames.productsEdit.replaceAll(':id', product.id.toString())),
+          child: Padding(
+            padding: EdgeInsets.all(12.w),
+            child: Row(
+              children: [
+                // Product Image Placeholder
+                Container(
+                  width: 60.w,
+                  height: 60.w,
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceLight,
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  SizedBox(height: 4.h),
-                  Row(
+                  child: const Icon(Icons.image_outlined, color: AppColors.textMuted),
+                ),
+                SizedBox(width: 16.w),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildStatusTag(
-                        isOutOfStock 
-                          ? 'Out of Stock' 
-                          : (isLowStock ? 'Low Stock' : 'In Stock'),
-                        isOutOfStock 
-                          ? AppColors.danger 
-                          : (isLowStock ? AppColors.warning : AppColors.accent),
-                      ),
-                      SizedBox(width: 8.w),
                       Text(
-                        'Stock: ${product.currentStock}',
-                        style: TextStyle(fontSize: 12.sp, color: AppColors.textSecondary),
+                        product.name,
+                        style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
+                      ),
+                      SizedBox(height: 4.h),
+                      Row(
+                        children: [
+                          _buildStatusTag(
+                            isOutOfStock 
+                              ? 'Out of Stock' 
+                              : (isLowStock ? 'Low Stock' : 'In Stock'),
+                            isOutOfStock 
+                              ? AppColors.danger 
+                              : (isLowStock ? AppColors.warning : AppColors.accent),
+                          ),
+                          SizedBox(width: 8.w),
+                          Text(
+                            'Stock: ${product.currentStock}',
+                            style: TextStyle(fontSize: 12.sp, color: AppColors.textSecondary),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                ],
-              ),
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  '₹${product.retailPrice}',
-                  style: TextStyle(
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.primary,
-                  ),
                 ),
-                Text(
-                  'Retail',
-                  style: TextStyle(fontSize: 10.sp, color: AppColors.textMuted),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      '₹${product.retailPrice}',
+                      style: TextStyle(
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                    Text(
+                      'Retail',
+                      style: TextStyle(fontSize: 10.sp, color: AppColors.textMuted),
+                    ),
+                  ],
                 ),
               ],
             ),
-          ],
+          ),
         ),
       ),
     );

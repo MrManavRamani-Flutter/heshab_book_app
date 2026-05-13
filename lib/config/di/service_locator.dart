@@ -18,7 +18,6 @@ import '../../features/ledger/data/repositories/ledger_repository.dart';
 import '../../features/expenses/data/repositories/expense_repository.dart';
 import '../../features/reports/data/repositories/report_repository.dart';
 import '../../features/settings/data/repositories/settings_repository.dart';
-import '../../features/settings/data/repositories/sync_repository.dart';
 import '../../features/parties/data/repositories/supplier_repository.dart';
 import '../../features/parties/data/repositories/retailer_repository.dart';
 
@@ -89,10 +88,6 @@ Future<void> setupServiceLocator() async {
       Hive.box(AppConstants.settingsBox),
       sl<AppDatabase>(),
     ),
-  );
-
-  sl.registerSingleton<SyncRepository>(
-    SyncRepository(),
   );
 
   sl.registerSingleton<SupplierRepository>(

@@ -101,8 +101,9 @@ class _ShopSetupScreenState extends ConsumerState<ShopSetupScreen> {
 
       ref.read(authProvider.notifier).markShopSetupDone(authState.user);
     } catch (e) {
+      debugPrint('Error saving shop: $e');
       setState(() {
-        _errorMsg = 'Could not save shop. Please try again.';
+        _errorMsg = 'Could not save shop: $e';
         _isSaving = false;
       });
     }
@@ -136,6 +137,7 @@ class _ShopSetupScreenState extends ConsumerState<ShopSetupScreen> {
                         
                         const SizedBox(height: 24),
                         AuthFormField(
+                          key: const ValueKey('shopNameField'),
                           label: 'Shop Name *',
                           prefixIcon: Icons.storefront_outlined,
                           controller: _shopNameController,
@@ -143,6 +145,7 @@ class _ShopSetupScreenState extends ConsumerState<ShopSetupScreen> {
                         ),
                         const SizedBox(height: 16),
                         AuthFormField(
+                          key: const ValueKey('shopPhoneField'),
                           label: 'Shop Phone (Optional)',
                           prefixIcon: Icons.phone_outlined,
                           controller: _phoneController,
@@ -150,6 +153,7 @@ class _ShopSetupScreenState extends ConsumerState<ShopSetupScreen> {
                         ),
                         const SizedBox(height: 16),
                         AuthFormField(
+                          key: const ValueKey('shopAddressField'),
                           label: 'Shop Address (Optional)',
                           prefixIcon: Icons.location_on_outlined,
                           controller: _addressController,
@@ -158,6 +162,7 @@ class _ShopSetupScreenState extends ConsumerState<ShopSetupScreen> {
                         const SizedBox(height: 40),
 
                         ElevatedButton(
+                          key: const ValueKey('saveShopButton'),
                           onPressed: _isSaving ? null : _onSaveShop,
                           style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 56)),
                           child: _isSaving
@@ -201,6 +206,7 @@ class _ShopSetupScreenState extends ConsumerState<ShopSetupScreen> {
   Widget _buildShopTypeCard(_ShopTypeOption type) {
     final isSelected = _selectedShopType == type.value;
     return GestureDetector(
+      key: ValueKey('shopType_${type.value}'),
       onTap: _isSaving ? null : () => setState(() => _selectedShopType = type.value),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 250),

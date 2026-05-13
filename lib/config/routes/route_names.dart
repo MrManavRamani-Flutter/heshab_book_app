@@ -12,8 +12,9 @@ class RouteNames {
   // Main
   static const String dashboard = '/dashboard';
   static const String products = '/products';
-  static const String productsAdd = '/products/add';
-  static const String productDetail = '/products/:id';
+  static const String productsAdd = '/add-product';
+  static const String productsEdit = '/edit-product/:id';
+  static const String productDetail = '/product-detail/:id';
   static const String stock = '/stock';
   static const String suppliers = '/suppliers';
   static const String suppliersAdd = '/suppliers/add';
@@ -28,6 +29,5 @@ class RouteNames {
   static const String ledger = '/ledger';
   static const String reports = '/reports';
   static const String settings = '/settings';
-  static const String cloudSync = '/settings/sync';
   static const String profile = '/settings/profile';
 }

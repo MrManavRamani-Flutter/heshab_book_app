@@ -79,6 +79,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         
                         // Full Name
                         AuthFormField(
+                          key: const ValueKey('nameField'),
                           label: 'Full Name',
                           hint: 'e.g. Manav Ramani',
                           prefixIcon: Icons.person_outline,
@@ -95,6 +96,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
                         // Mobile Number
                         AuthFormField(
+                          key: const ValueKey('mobileField'),
                           label: 'Mobile Number',
                           hint: 'e.g. 9876543210',
                           prefixIcon: Icons.phone_android_outlined,
@@ -114,6 +116,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
                         // Email
                         AuthFormField(
+                          key: const ValueKey('emailField'),
                           label: 'Email (Optional)',
                           hint: 'e.g. manav@example.com',
                           prefixIcon: Icons.email_outlined,
@@ -134,6 +137,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
                         // Password
                         AuthFormField(
+                          key: const ValueKey('passwordField'),
                           label: 'Password',
                           hint: 'Min. 6 characters',
                           prefixIcon: Icons.lock_outline,
@@ -151,6 +155,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
                         // Confirm Password
                         AuthFormField(
+                          key: const ValueKey('confirmPasswordField'),
                           label: 'Confirm Password',
                           hint: 'Re-enter password',
                           prefixIcon: Icons.lock_clock_outlined,
