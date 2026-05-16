@@ -1,87 +1,60 @@
-// lib/main.dart
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:go_router/go_router.dart';
+import 'theme/app_theme.dart';
+import 'database/database.dart';
+import 'screens/home_screen.dart';
+import 'screens/products_screen.dart';
+import 'screens/order_form_screen.dart';
+import 'screens/history_screen.dart';
 
-import 'config/di/service_locator.dart';
-import 'config/routes/app_router.dart';
-import 'config/theme/app_theme.dart';
-import 'core/constants/app_constants.dart';
-import 'features/auth/domain/providers/auth_provider.dart';
-import 'features/settings/domain/providers/settings_providers.dart';
-
-Future<void> main() async {
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  runApp(const ProviderScope(child: MyApp()));
+}
 
-  // ── System UI ──────────────────────────────────────────────────────────────
-  SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-    DeviceOrientation.portraitDown,
-  ]);
-
-  // ── Hive Init ──────────────────────────────────────────────────────────────
-  await Hive.initFlutter();
-  await Hive.openBox(AppConstants.authBox);
-  await Hive.openBox(AppConstants.settingsBox);
-
-  // ── Dependency Injection ───────────────────────────────────────────────────
-  await setupServiceLocator();
-
-  runApp(
-    const ProviderScope(
-      child: HeshabBookApp(),
+final _router = GoRouter(
+  initialLocation: '/',
+  routes: [
+    GoRoute(
+      path: '/',
+      builder: (context, state) => const HomeScreen(),
     ),
-  );
-}
-
-class HeshabBookApp extends ConsumerStatefulWidget {
-  const HeshabBookApp({super.key});
-
-  @override
-  ConsumerState<HeshabBookApp> createState() => _HeshabBookAppState();
-}
-
-class _HeshabBookAppState extends ConsumerState<HeshabBookApp> {
-  @override
-  void initState() {
-    super.initState();
-    // Initialize auth state on app start
-    Future.microtask(() => ref.read(authProvider.notifier).initialize());
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final router = ref.watch(routerProvider);
-    final themeModeStr = ref.watch(appThemeModeProvider);
-
-    final themeMode = switch (themeModeStr) {
-      'light' => ThemeMode.light,
-      'dark' => ThemeMode.dark,
-      _ => ThemeMode.system,
-    };
-
-    return ScreenUtilInit(
-      designSize: const Size(390, 844), // iPhone 14 Pro reference
-      minTextAdapt: true,
-      splitScreenMode: true,
-      builder: (context, child) {
-        return GestureDetector(
-          onTap: () {
-            FocusScope.of(context).unfocus();
-          },
-          child: MaterialApp.router(
-            title: AppConstants.appName,
-            debugShowCheckedModeBanner: false,
-            theme: AppTheme.darkTheme, // Force premium dark for now as requested
-            darkTheme: AppTheme.darkTheme,
-            themeMode: themeMode,
-            routerConfig: router,
-          ),
-        );
+    GoRoute(
+      path: '/products',
+      builder: (context, state) => const ProductsScreen(),
+    ),
+    GoRoute(
+      path: '/order/:type',
+      builder: (context, state) {
+        final typeStr = state.pathParameters['type'];
+        final type = typeStr == 'purchase' ? OrderType.purchase : OrderType.sale;
+        return OrderFormScreen(type: type);
       },
+    ),
+    GoRoute(
+      path: '/history/:type',
+      builder: (context, state) {
+        final typeStr = state.pathParameters['type'];
+        final type = typeStr == 'purchase' ? OrderType.purchase : OrderType.sale;
+        return HistoryScreen(type: type);
+      },
+    ),
+  ],
+);
+
+class MyApp extends ConsumerWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return MaterialApp.router(
+      title: 'Kapad Shop',
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: ThemeMode.system, // Switches based on system preference
+      routerConfig: _router,
+      debugShowCheckedModeBanner: false,
     );
   }
 }
