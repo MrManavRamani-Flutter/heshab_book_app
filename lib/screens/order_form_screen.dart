@@ -2,8 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:drift/drift.dart' as drift;
+import 'package:google_fonts/google_fonts.dart';
 import '../providers/database_provider.dart';
 import '../database/database.dart';
+import '../theme/app_theme.dart';
+import '../l10n/app_translations.dart';
+import '../providers/settings_provider.dart';
+import '../utils/translation_helper.dart';
+import '../utils/notification_helper.dart';
 
 class OrderFormScreen extends ConsumerStatefulWidget {
   final OrderType type;
@@ -15,7 +21,8 @@ class OrderFormScreen extends ConsumerStatefulWidget {
 
 class _OrderFormScreenState extends ConsumerState<OrderFormScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _partyNameController = TextEditingController();
+  final TextEditingController _partyController = TextEditingController();
+  Party? _selectedParty;
   final List<_OrderItemEntry> _entries = [];
   bool _isLoading = false;
 
@@ -24,6 +31,9 @@ class _OrderFormScreenState extends ConsumerState<OrderFormScreen> {
     super.initState();
     _addEmptyEntry();
   }
+
+  bool _reminderEnabled = true;
+  int _reminderDays = 1;
 
   void _addEmptyEntry() {
     setState(() {
@@ -43,12 +53,17 @@ class _OrderFormScreenState extends ConsumerState<OrderFormScreen> {
     return _entries.fold(0.0, (sum, entry) => sum + entry.total);
   }
 
-  Future<void> _saveOrder() async {
+  Future<void> _saveOrder(List<Party> existingParties, String Function(String) t, String lang) async {
     if (!_formKey.currentState!.validate()) return;
     
+    if (_partyController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(t('err_enter_party'))));
+      return;
+    }
+
     final validEntries = _entries.where((e) => e.product != null && e.quantity > 0 && e.price > 0).toList();
     if (validEntries.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please add at least one valid item.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(t('err_no_valid_item'))));
       return;
     }
 
@@ -56,14 +71,41 @@ class _OrderFormScreenState extends ConsumerState<OrderFormScreen> {
 
     try {
       final db = ref.read(databaseProvider);
+      
+      int actualPartyId = -1;
+      final typedName = _partyController.text.trim();
+      if (_selectedParty != null && _selectedParty!.localizedName(lang) == typedName) {
+        actualPartyId = _selectedParty!.id;
+      } else {
+        final matches = existingParties.where((p) => p.localizedName(lang).toLowerCase() == typedName.toLowerCase()).toList();
+        if (matches.isNotEmpty) {
+          actualPartyId = matches.first.id;
+        } else {
+          // Auto translate the party name
+          final translations = await TranslationHelper.translateToAll(typedName, lang);
+          actualPartyId = await db.into(db.parties).insert(
+            PartiesCompanion.insert(
+              nameEn: translations['en'] ?? typedName, 
+              nameHi: translations['hi'] ?? typedName, 
+              nameGu: translations['gu'] ?? typedName, 
+              type: widget.type
+            ),
+          );
+        }
+      }
+
+      int orderId = -1;
       await db.transaction(() async {
+        
         // 1. Insert Order
-        final orderId = await db.into(db.orders).insert(
+        orderId = await db.into(db.orders).insert(
           OrdersCompanion.insert(
             type: widget.type,
-            partyName: _partyNameController.text.trim(),
+            partyId: actualPartyId,
             date: DateTime.now(),
             totalAmount: _totalAmount,
+            reminderEnabled: drift.Value(_reminderEnabled),
+            reminderDays: drift.Value(_reminderDays),
           ),
         );
 
@@ -90,9 +132,21 @@ class _OrderFormScreenState extends ConsumerState<OrderFormScreen> {
         }
       });
 
+      // Schedule notification if reminder enabled and global notifications are ON
+      final globalNotificationsEnabled = ref.read(notificationEnabledProvider);
+      if (_reminderEnabled && globalNotificationsEnabled) {
+        await NotificationHelper.scheduleOrderReminder(
+          orderId: orderId,
+          partyName: typedName,
+          pendingAmount: _totalAmount,
+          days: _reminderDays,
+          lang: lang,
+        );
+      }
+
       if (mounted) {
         context.pop();
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Order saved successfully!')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(t('success_order_saved'))));
       }
     } catch (e) {
       if (mounted) {
@@ -105,15 +159,38 @@ class _OrderFormScreenState extends ConsumerState<OrderFormScreen> {
 
   @override
   void dispose() {
-    _partyNameController.dispose();
+    _partyController.dispose();
+    for (var entry in _entries) {
+      entry.quantityController.dispose();
+      entry.priceController.dispose();
+    }
     super.dispose();
+  }
+
+  void _showHelpDialog(BuildContext context, String title, String message) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(title, style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
+        content: Text(message, style: GoogleFonts.outfit()),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK')),
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final lang = ref.watch(localeProvider);
+    String t(String key) => AppTranslations.translate(key, lang);
+    
     final productsAsync = ref.watch(productsProvider);
-    final title = widget.type == OrderType.purchase ? 'New Purchase (Wholesale)' : 'New Sale (Retailer)';
-    final color = widget.type == OrderType.purchase ? Colors.blueGrey : Colors.teal;
+    final partiesAsync = ref.watch(partiesProvider(widget.type));
+    
+    final isPurchase = widget.type == OrderType.purchase;
+    final title = isPurchase ? t('new_purchase') : t('new_sale');
+    final color = AppTheme.khataRed;
 
     return Scaffold(
       appBar: AppBar(
@@ -124,114 +201,279 @@ class _OrderFormScreenState extends ConsumerState<OrderFormScreen> {
       body: productsAsync.when(
         data: (products) {
           if (products.isEmpty) {
-            return const Center(child: Text('No products available. Please add products first.'));
+            return Center(child: Text(t('no_products_avail')));
           }
 
-          return Form(
-            key: _formKey,
-            child: ListView(
-              padding: const EdgeInsets.all(16.0),
-              children: [
-                TextFormField(
-                  controller: _partyNameController,
-                  decoration: InputDecoration(
-                    labelText: widget.type == OrderType.purchase ? 'Max Hall Vepari Name' : 'Retailer Name',
-                    border: const OutlineInputBorder(),
-                  ),
-                  validator: (val) => val == null || val.trim().isEmpty ? 'Required' : null,
-                ),
-                const SizedBox(height: 24),
-                Text('Order Items', style: Theme.of(context).textTheme.titleLarge),
-                const SizedBox(height: 8),
-                ..._entries.asMap().entries.map((mapEntry) {
-                  final index = mapEntry.key;
-                  final entry = mapEntry.value;
-                  return Card(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            flex: 3,
-                            child: DropdownButtonFormField<Product>(
-                              initialValue: entry.product,
-                              isExpanded: true,
-                              decoration: const InputDecoration(labelText: 'Product', border: OutlineInputBorder()),
-                              items: products.map((p) {
-                                return DropdownMenuItem(
-                                  value: p,
-                                  child: Text('${p.name} ${p.variety != null ? "(${p.variety})" : ""}'),
-                                );
-                              }).toList(),
-                              onChanged: (p) {
-                                setState(() {
-                                  entry.product = p;
-                                  if (p != null && entry.price == 0) {
-                                    entry.price = p.price;
-                                    entry.priceController.text = p.price.toString();
-                                  }
-                                });
-                              },
-                              validator: (val) => val == null ? 'Select product' : null,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            flex: 2,
-                            child: TextFormField(
-                              controller: entry.quantityController,
-                              decoration: const InputDecoration(labelText: 'Qty', border: OutlineInputBorder()),
-                              keyboardType: TextInputType.number,
-                              onChanged: (val) => setState(() => entry.quantity = int.tryParse(val) ?? 0),
-                              validator: (val) => (int.tryParse(val ?? '') ?? 0) <= 0 ? 'Invalid' : null,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            flex: 2,
-                            child: TextFormField(
-                              controller: entry.priceController,
-                              decoration: const InputDecoration(labelText: 'Price', border: OutlineInputBorder()),
-                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                              onChanged: (val) => setState(() => entry.price = double.tryParse(val) ?? 0.0),
-                              validator: (val) => (double.tryParse(val ?? '') ?? 0) <= 0 ? 'Invalid' : null,
-                            ),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.remove_circle, color: Colors.red),
-                            onPressed: () => _removeEntry(index),
-                          ),
-                        ],
+          return partiesAsync.when(
+            data: (parties) {
+              return Form(
+                key: _formKey,
+                child: ListView(
+                  padding: const EdgeInsets.all(16.0),
+                  children: [
+                    // Party Name Card
+                    Card(
+                      elevation: 2,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Autocomplete<Party>(
+                          displayStringForOption: (Party p) => p.localizedName(lang),
+                          optionsBuilder: (TextEditingValue textEditingValue) {
+                            if (textEditingValue.text == '') {
+                              return const Iterable<Party>.empty();
+                            }
+                            return parties.where((Party p) {
+                              return p.localizedName(lang).toLowerCase().contains(textEditingValue.text.toLowerCase());
+                            });
+                          },
+                          onSelected: (Party p) {
+                            setState(() {
+                              _selectedParty = p;
+                            });
+                          },
+                          fieldViewBuilder: (context, textEditingController, focusNode, onFieldSubmitted) {
+                            if (_partyController.text.isEmpty && textEditingController.text.isNotEmpty) {
+                               // do nothing
+                            } else if (textEditingController.text != _partyController.text) {
+                               textEditingController.text = _partyController.text;
+                            }
+                            textEditingController.addListener(() {
+                              _partyController.text = textEditingController.text;
+                            });
+
+                            return TextFormField(
+                              controller: textEditingController,
+                              focusNode: focusNode,
+                              decoration: InputDecoration(
+                                labelText: isPurchase ? t('wholesaler_name') : t('retailer_name'),
+                                prefixIcon: const Icon(Icons.person),
+                                border: const OutlineInputBorder(),
+                              ),
+                              validator: (val) => val == null || val.trim().isEmpty ? t('err_required') : null,
+                            );
+                          },
+                        ),
                       ),
                     ),
-                  );
-                }),
-                TextButton.icon(
-                  onPressed: _addEmptyEntry,
-                  icon: const Icon(Icons.add),
-                  label: const Text('Add Another Item'),
-                ),
-                const SizedBox(height: 24),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('Total Amount:', style: Theme.of(context).textTheme.titleLarge),
-                    Text('₹${_totalAmount.toStringAsFixed(2)}', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold, color: color)),
+                    const SizedBox(height: 24),
+                    Text(t('new_entry'), style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: color)),
+                    const SizedBox(height: 12),
+                    
+                    // Order Items List
+                    ..._entries.asMap().entries.map((mapEntry) {
+                      final index = mapEntry.key;
+                      final entry = mapEntry.value;
+                      return Card(
+                        margin: const EdgeInsets.only(bottom: 16),
+                        elevation: 2,
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Autocomplete<Product>(
+                                      displayStringForOption: (Product p) => p.localizedDisplayName(lang),
+                                      optionsBuilder: (TextEditingValue textEditingValue) {
+                                        if (textEditingValue.text == '') {
+                                          return const Iterable<Product>.empty();
+                                        }
+                                        return products.where((Product p) {
+                                          final label = p.localizedDisplayName(lang);
+                                          return label.toLowerCase().contains(textEditingValue.text.toLowerCase());
+                                        });
+                                      },
+                                      onSelected: (Product p) {
+                                        setState(() {
+                                          entry.product = p;
+                                          if (entry.priceController.text.isEmpty) {
+                                            entry.price = p.price;
+                                          }
+                                        });
+                                      },
+                                      fieldViewBuilder: (context, textEditingController, focusNode, onFieldSubmitted) {
+                                        return TextFormField(
+                                          controller: textEditingController,
+                                          focusNode: focusNode,
+                                          decoration: InputDecoration(
+                                            labelText: t('search_product'),
+                                            border: const OutlineInputBorder(),
+                                            prefixIcon: const Icon(Icons.search),
+                                          ),
+                                          validator: (val) => entry.product == null ? t('err_select_product') : null,
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.remove_circle_outline, color: Colors.red),
+                                    onPressed: () => _removeEntry(index),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 16),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: TextFormField(
+                                      controller: entry.quantityController,
+                                      decoration: InputDecoration(
+                                        labelText: t('qty'),
+                                        border: const OutlineInputBorder(),
+                                        prefixIcon: const Icon(Icons.numbers),
+                                      ),
+                                      keyboardType: TextInputType.number,
+                                      onChanged: (val) => setState(() => entry.quantity = int.tryParse(val) ?? 0),
+                                      validator: (val) => (int.tryParse(val ?? '') ?? 0) <= 0 ? t('err_invalid') : null,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: TextFormField(
+                                      controller: entry.priceController,
+                                      decoration: InputDecoration(
+                                        labelText: t('price'),
+                                        hintText: entry.product != null ? AppTranslations.formatCurrency(entry.product!.price, lang) : AppTranslations.formatStringNumber('0.00', lang),
+                                        border: const OutlineInputBorder(),
+                                        prefixIcon: const Icon(Icons.currency_rupee),
+                                      ),
+                                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                      onChanged: (val) {
+                                        setState(() {
+                                          entry.price = val.isEmpty ? (entry.product?.price ?? 0.0) : (double.tryParse(val) ?? 0.0);
+                                        });
+                                      },
+                                      validator: (val) => entry.price <= 0 ? t('err_invalid') : null,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              if (entry.total > 0)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 12.0),
+                                  child: Align(
+                                    alignment: Alignment.centerRight,
+                                    child: Text('${t('item_total')}: ₹${AppTranslations.formatCurrency(entry.total, lang)}', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }),
+                    
+                    // Add Item Button
+                    OutlinedButton.icon(
+                      onPressed: _addEmptyEntry,
+                      icon: const Icon(Icons.add),
+                      label: Text(t('add_another_item')),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
+                    
+                    // Reminder Settings Card
+                    Card(
+                      elevation: 1,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(t('reminder_settings'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                                IconButton(
+                                  icon: const Icon(Icons.info_outline, size: 20, color: Colors.grey),
+                                  onPressed: () => _showHelpDialog(context, t('reminder_settings'), t('info_reminder')),
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(),
+                                ),
+                              ],
+                            ),
+                            SwitchListTile(
+                              title: Text(t('reminder_enabled')),
+                              value: _reminderEnabled,
+                              activeTrackColor: color.withValues(alpha: 0.5),
+                              activeThumbColor: color,
+                              onChanged: (val) => setState(() => _reminderEnabled = val),
+                            ),
+                            if (_reminderEnabled)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 8.0, left: 16.0, right: 16.0),
+                                child: Row(
+                                  children: [
+                                    const Icon(Icons.timer, color: Colors.grey),
+                                    const SizedBox(width: 16),
+                                    Expanded(
+                                      child: DropdownButtonFormField<int>(
+                                        initialValue: _reminderDays,
+                                        decoration: const InputDecoration(border: OutlineInputBorder(), contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8)),
+                                        items: [1, 2, 3, 5, 7, 10, 15, 30].map((int value) {
+                                          return DropdownMenuItem<int>(
+                                            value: value,
+                                            child: Text('${AppTranslations.formatNumber(value, lang)} ${t('days')}'),
+                                          );
+                                        }).toList(),
+                                        onChanged: (val) {
+                                          if (val != null) setState(() => _reminderDays = val);
+                                        },
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                    
+                    // Total Summary Card
+                    Card(
+                      color: color.withValues(alpha: 0.1),
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: color.withValues(alpha: 0.3))),
+                      child: Padding(
+                        padding: const EdgeInsets.all(20.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(t('total_bill_amount'), style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                            Text('₹${AppTranslations.formatCurrency(_totalAmount, lang)}', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold, color: color)),
+                          ],
+                        ),
+                      ),
+                    ),
+                    
+                    const SizedBox(height: 32),
+                    
+                    // Save Button
+                    SizedBox(
+                      height: 56,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: color, 
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          elevation: 4,
+                        ),
+                        onPressed: _isLoading ? null : () => _saveOrder(parties, t, lang),
+                        child: _isLoading 
+                            ? const CircularProgressIndicator(color: Colors.white) 
+                            : Text(t('generate_bill'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                      ),
+                    ),
+                    const SizedBox(height: 32),
                   ],
                 ),
-                const SizedBox(height: 24),
-                SizedBox(
-                  height: 50,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(backgroundColor: color, foregroundColor: Colors.white),
-                    onPressed: _isLoading ? null : _saveOrder,
-                    child: _isLoading ? const CircularProgressIndicator(color: Colors.white) : const Text('SAVE BILL'),
-                  ),
-                ),
-              ],
-            ),
+              );
+            },
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (err, stack) => Center(child: Text('Error: $err')),
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),

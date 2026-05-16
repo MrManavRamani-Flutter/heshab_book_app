@@ -29,6 +29,10 @@ dependencies:
   # Utils
   intl: ^0.20.2
   google_fonts: ^6.2.1
+  shared_preferences: ^2.5.5
+  translator: ^1.0.4+1
+  flutter_local_notifications: ^21.0.0
+  timezone: ^0.11.0
 
 dev_dependencies:
   flutter_test:
@@ -39,6 +43,26 @@ dev_dependencies:
   build_runner: ^2.4.15
   riverpod_generator: ^2.6.4
   drift_dev: ^2.26.1
+  flutter_launcher_icons: ^0.14.4
+  flutter_native_splash: ^2.4.7
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/icon.png
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/icon.png"
+  min_sdk_android: 21
+
+flutter_native_splash:
+  color: "#8B0000" # Khata Red
+  image: "assets/icon.png"
+  android: true
+  ios: true
+  android_12:
+    image: "assets/icon.png"
+    icon_background_color: "#8B0000"
+    color: "#8B0000"
