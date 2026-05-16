@@ -31,26 +31,30 @@ class Auth extends _$Auth {
 
   AuthRepository get _repo => ref.read(authRepositoryProvider);
 
-  /// Called once at app startup to restore session from Hive + SQLite
+  /// Called once at app startup to restore session or create default user
   Future<void> initialize() async {
+    print('DEBUG: AuthNotifier.initialize starting');
     state = const AuthLoading();
     try {
-      final user = await _repo.restoreSession().timeout(
+      print('DEBUG: Getting or creating default user...');
+      final user = await _repo.getOrCreateDefaultUser().timeout(
         const Duration(seconds: 5),
-        onTimeout: () => null,
       );
+      print('DEBUG: Default user: ${user.id}');
 
-      if (user != null) {
-        final hasShop = await _repo.hasShop(user.id).timeout(
-          const Duration(seconds: 3),
-          onTimeout: () => false,
-        );
-        state = AuthAuthenticated(user: user, isFirstLogin: !hasShop);
-      } else {
-        state = const AuthUnauthenticated();
-      }
-    } catch (e) {
-      state = const AuthUnauthenticated();
+      print('DEBUG: Checking if shop exists...');
+      final hasShop = await _repo.hasShop(user.id).timeout(
+        const Duration(seconds: 3),
+        onTimeout: () => false,
+      );
+      print('DEBUG: hasShop: $hasShop');
+      
+      state = AuthAuthenticated(user: user, isFirstLogin: !hasShop);
+      print('DEBUG: AuthAuthenticated state set. isFirstLogin: ${!hasShop}');
+    } catch (e, stack) {
+      print('DEBUG: Auth initialization failed: $e');
+      print(stack);
+      state = AuthFailure('App initialization failed: $e');
     }
   }
 

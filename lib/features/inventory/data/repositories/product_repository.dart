@@ -165,7 +165,7 @@ class ProductRepository {
           ..where((p) => p.shopId.equals(shopId))
           ..where((p) => p.isDeleted.equals(false))
           ..where((p) => p.matchingCode.equals(matchingCode))
-          ..where((p) => p.id.notEquals(excludeProductId)))
+          ..where((p) => p.id.equals(excludeProductId).not()))
         .get();
   }
 }

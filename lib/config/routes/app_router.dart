@@ -12,9 +12,8 @@ import '../../features/auth/domain/providers/auth_provider.dart';
 
 // ── Screens ────────────────────────────────────────────────────────────────
 import '../../features/auth/presentation/screens/splash_screen.dart';
-import '../../features/auth/presentation/screens/login_screen.dart';
-import '../../features/auth/presentation/screens/register_screen.dart';
 import '../../features/auth/presentation/screens/shop_setup_screen.dart';
+import '../../features/shops/presentation/screens/shop_profile_screen.dart';
 import '../../features/dashboard/presentation/screens/dashboard_screen.dart';
 import '../../features/billing/presentation/screens/billing_screen.dart';
 import '../../features/inventory/presentation/screens/product_list_screen.dart';
@@ -47,17 +46,10 @@ final routerProvider = Provider<GoRouter>((ref) {
     debugLogDiagnostics: false,
     refreshListenable: notifier,
 
-    // ── Auth Guard ─────────────────────────────────────────────────────────
+    // ── Navigation Guard ──────────────────────────────────────────────────
     redirect: (context, state) {
       final authState = ref.read(authProvider);
       final currentPath = state.uri.path;
-
-      // Public routes — never redirect
-      final publicRoutes = [
-        RouteNames.splash,
-        RouteNames.login,
-        RouteNames.register,
-      ];
 
       // While initial/loading — stay on splash
       if (authState is AuthInitial || authState is AuthLoading) {
@@ -65,38 +57,31 @@ final routerProvider = Provider<GoRouter>((ref) {
         return RouteNames.splash;
       }
 
-      // Unauthenticated — send to login
+      // If somehow unauthenticated or failure, we stay on splash and wait for initialize
       if (authState is AuthUnauthenticated || authState is AuthFailure) {
-        // If on splash, we must go to login
-        if (currentPath == RouteNames.splash) return RouteNames.login;
-        // If already on public routes (login/register), stay there
-        if (publicRoutes.contains(currentPath)) return null;
-        return RouteNames.login;
+        if (currentPath == RouteNames.splash) return null;
+        // In a real failure, maybe show error, but here we'll just try home
+        return RouteNames.splash;
       }
 
-      // Authenticated
+      // Authenticated (Always true now after splash)
       if (authState is AuthAuthenticated) {
-        // If on login/register, redirect to correct screen
-        if (currentPath == RouteNames.login ||
-            currentPath == RouteNames.register) {
-          // New user → shop setup first
-          if (authState.isFirstLogin) return RouteNames.shopSetup;
-          return RouteNames.dashboard;
-        }
-
-        // If on splash, redirect to appropriate screen
+        // If on splash, redirect based on shop status
         if (currentPath == RouteNames.splash) {
-          if (authState.isFirstLogin) return RouteNames.shopSetup;
+          return authState.isFirstLogin ? RouteNames.shopSetup : RouteNames.dashboard;
+        }
+
+        // Prevent accessing shop setup if already done
+        if (!authState.isFirstLogin && currentPath == RouteNames.shopSetup) {
           return RouteNames.dashboard;
         }
 
-        // If not first login but on shop setup, redirect to dashboard
-        if (!authState.isFirstLogin &&
-            currentPath == RouteNames.shopSetup) {
+        // Prevent accessing login/register
+        if (currentPath == RouteNames.login || currentPath == RouteNames.register) {
           return RouteNames.dashboard;
         }
 
-        return null; // allow
+        return null;
       }
 
       return null;
@@ -124,16 +109,12 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const SplashScreen(),
       ),
       GoRoute(
-        path: RouteNames.login,
-        builder: (context, state) => const LoginScreen(),
-      ),
-      GoRoute(
-        path: RouteNames.register,
-        builder: (context, state) => const RegisterScreen(),
-      ),
-      GoRoute(
         path: RouteNames.shopSetup,
         builder: (context, state) => const ShopSetupScreen(),
+      ),
+      GoRoute(
+        path: RouteNames.profile,
+        builder: (context, state) => const ShopProfileScreen(),
       ),
       GoRoute(
         path: '/add-party',

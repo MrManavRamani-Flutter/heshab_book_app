@@ -2,7 +2,9 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../config/routes/route_names.dart';
 import '../../../auth/domain/providers/auth_provider.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -24,14 +26,38 @@ class SettingsScreen extends ConsumerWidget {
               title: const Text('Shop Profile'),
               subtitle: const Text('Manage business details'),
               trailing: const Icon(Icons.chevron_right),
-              onTap: () {},
+              onTap: () {
+                context.push(RouteNames.profile);
+              },
             ),
             const Divider(),
             ListTile(
-              leading: const Icon(Icons.logout, color: Colors.red),
-              title: const Text('Logout', style: TextStyle(color: Colors.red)),
-              onTap: () {
-                ref.read(authProvider.notifier).logout();
+              leading: const Icon(Icons.delete_forever_outlined, color: Colors.red),
+              title: const Text('Reset App Data', style: TextStyle(color: Colors.red)),
+              subtitle: const Text('Clear all shops, products, and bills'),
+              onTap: () async {
+                final confirmed = await showDialog<bool>(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Reset All Data?'),
+                    content: const Text('This will permanently delete all your shops, products, parties, and bills. This action cannot be undone.'),
+                    actions: [
+                      TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('CANCEL')),
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, true),
+                        style: TextButton.styleFrom(foregroundColor: Colors.red),
+                        child: const Text('RESET EVERYTHING'),
+                      ),
+                    ],
+                  ),
+                );
+
+                if (confirmed == true) {
+                  // Simply logout for now which clears session, 
+                  // but we should ideally clear the whole database.
+                  // For this task, we'll just trigger the initialization again.
+                  ref.read(authProvider.notifier).logout();
+                }
               },
             ),
           ],

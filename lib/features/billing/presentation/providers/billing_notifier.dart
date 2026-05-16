@@ -5,6 +5,7 @@ import 'package:drift/drift.dart';
 import '../../../../database/app_database.dart';
 import '../../../shops/domain/providers/shop_providers.dart';
 import '../../domain/providers/bill_providers.dart';
+import 'package:heshab_book_app/features/inventory/domain/providers/product_providers.dart';
 import 'billing_state.dart';
 
 part 'billing_notifier.g.dart';

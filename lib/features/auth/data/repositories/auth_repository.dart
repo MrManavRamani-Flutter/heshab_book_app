@@ -53,18 +53,36 @@ class AuthRepository {
   int? get currentUserId =>
       _authBox.get(AppConstants.keyCurrentUserId);
 
-  /// Restore user from Hive session
+  /// Restore user from Hive session (Always returns default user now)
   Future<AuthUser?> restoreSession() async {
-    if (!isLoggedIn) return null;
-    final id = currentUserId;
-    if (id == null) return null;
+    return getOrCreateDefaultUser();
+  }
 
-    final dbUser = await _userDao.findById(id);
-    if (dbUser == null) {
-      await _clearSession();
-      return null;
+  /// Create or fetch the singleton user for the login-free system
+  Future<AuthUser> getOrCreateDefaultUser() async {
+    // Try to find any existing user
+    final users = await (_userDao.select(_userDao.users)..limit(1)).get();
+    
+    if (users.isNotEmpty) {
+      return _toAuthUser(users.first);
     }
-    return _toAuthUser(dbUser);
+
+    // Create a default user
+    final userUuid = _uuid.v4();
+    final now = DateTime.now();
+    final newId = await _userDao.insertUser(
+      UsersCompanion.insert(
+        uuid: userUuid,
+        name: 'Shop Owner',
+        mobile: const Value('0000000000'),
+        passwordHash: 'no_password_needed',
+        createdAt: Value(now),
+        updatedAt: Value(now),
+      ),
+    );
+
+    final newUser = await _userDao.findById(newId);
+    return _toAuthUser(newUser!);
   }
 
   // ── Register ───────────────────────────────────────────────────────────────

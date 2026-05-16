@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:go_router/go_router.dart';
+import '../../../../config/routes/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_card.dart';
 import '../../../billing/domain/providers/bill_providers.dart';
@@ -56,14 +58,17 @@ class DashboardScreen extends ConsumerWidget {
                           ).animate().fadeIn(delay: 100.ms).slideX(),
                         ],
                       ),
-                      Container(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(color: AppColors.glassBorder),
-                        ),
-                        child: const CircleAvatar(
-                          backgroundColor: AppColors.surfaceLight,
-                          child: Icon(Icons.person_outline, color: Colors.white),
+                      GestureDetector(
+                        onTap: () => context.push(RouteNames.profile),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(color: AppColors.glassBorder),
+                          ),
+                          child: const CircleAvatar(
+                            backgroundColor: AppColors.surfaceLight,
+                            child: Icon(Icons.person_outline, color: Colors.white),
+                          ),
                         ),
                       ).animate().fadeIn(delay: 200.ms).scale(),
                     ],

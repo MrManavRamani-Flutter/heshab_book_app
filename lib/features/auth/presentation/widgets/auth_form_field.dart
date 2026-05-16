@@ -14,7 +14,8 @@ class AuthFormField extends StatefulWidget {
   final TextInputAction textInputAction;
   final VoidCallback? onEditingComplete;
   final bool enabled;
-  final String? infoMessage; // New parameter for the info icon
+  final String? infoMessage;
+  final int maxLines;
 
   const AuthFormField({
     super.key,
@@ -29,6 +30,7 @@ class AuthFormField extends StatefulWidget {
     this.onEditingComplete,
     this.enabled = true,
     this.infoMessage,
+    this.maxLines = 1,
   });
 
   @override
@@ -81,6 +83,7 @@ class _AuthFormFieldState extends State<AuthFormField> {
       enabled: widget.enabled,
       onEditingComplete: widget.onEditingComplete,
       validator: widget.validator,
+      maxLines: widget.maxLines,
       style: const TextStyle(
         fontSize: 16,
         fontWeight: FontWeight.w500,

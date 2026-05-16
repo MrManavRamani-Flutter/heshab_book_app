@@ -38,8 +38,9 @@ class ShopDao extends DatabaseAccessor<AppDatabase> with _$ShopDaoMixin {
   }
 
   /// Update shop
-  Future<bool> updateShop(ShopsCompanion entry) {
-    return update(shops).replace(entry);
+  Future<bool> updateShop(ShopsCompanion entry) async {
+    final count = await (update(shops)..where((s) => s.id.equals(entry.id.value))).write(entry);
+    return count > 0;
   }
 
   /// Count shops for a user
