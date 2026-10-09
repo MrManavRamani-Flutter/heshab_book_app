@@ -509,4 +509,3 @@ git push -u origin main
 - **Author**: Manav Ramani ([@MrManavRamani-Flutter](https://github.com/MrManavRamani-Flutter))
 - **Primary Market**: Small, Medium & Wholesale Textile and Retail Businesses
 - **Vision**: To empower every shopkeeper with an effortless, transparent, and offline-reliable digital accountant.
-# heshab_book_app
