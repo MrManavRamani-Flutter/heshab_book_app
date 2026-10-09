@@ -8,6 +8,7 @@ import '../theme/app_theme.dart';
 import '../l10n/app_translations.dart';
 import '../providers/settings_provider.dart';
 import '../utils/translation_helper.dart';
+import '../utils/action_helper.dart';
 
 class PartiesScreen extends ConsumerStatefulWidget {
   const PartiesScreen({super.key});
@@ -318,9 +319,20 @@ class _PartyList extends ConsumerWidget {
                         : t('no_phone'), 
                     style: TextStyle(color: Colors.grey.shade600),
                   ),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.edit, color: Colors.blueGrey, size: 20),
-                    onPressed: () => onEdit(ref, party),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (party.phone != null && party.phone!.isNotEmpty)
+                        IconButton(
+                          icon: const Icon(Icons.call, color: Colors.green, size: 20),
+                          tooltip: t('call'),
+                          onPressed: () => ActionHelper.makePhoneCall(party.phone!),
+                        ),
+                      IconButton(
+                        icon: const Icon(Icons.edit, color: Colors.blueGrey, size: 20),
+                        onPressed: () => onEdit(ref, party),
+                      ),
+                    ],
                   ),
                 ),
               ),

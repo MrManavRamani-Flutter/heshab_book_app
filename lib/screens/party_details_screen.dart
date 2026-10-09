@@ -8,6 +8,7 @@ import '../database/database.dart';
 import '../l10n/app_translations.dart';
 import '../providers/settings_provider.dart';
 import '../utils/notification_helper.dart';
+import '../utils/action_helper.dart';
 
 class PartyDetailsScreen extends ConsumerWidget {
   final Party party;
@@ -23,6 +24,140 @@ class PartyDetailsScreen extends ConsumerWidget {
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK')),
         ],
       ),
+    );
+  }
+
+  void _showQuickAccountPaymentDialog(
+    BuildContext context,
+    WidgetRef ref,
+    List<Order> orders,
+    double totalPending,
+    String Function(String) t,
+    String lang,
+  ) {
+    final formKey = GlobalKey<FormState>();
+    final amountController = TextEditingController();
+    String selectedMode = 'mode_cash';
+
+    final paymentModes = ['mode_cash', 'mode_upi', 'mode_cheque', 'mode_bank'];
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: Text(t('quick_payment'), style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
+              content: Form(
+                key: formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${t('pending_amount')}: ₹${AppTranslations.formatCurrency(totalPending, lang)}',
+                      style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red.shade700, fontSize: 16),
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: amountController,
+                      decoration: InputDecoration(
+                        labelText: t('enter_amount'),
+                        prefixIcon: const Icon(Icons.currency_rupee),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      autofocus: true,
+                      validator: (val) {
+                        if (val == null || val.trim().isEmpty) return t('err_required');
+                        final amount = double.tryParse(val);
+                        if (amount == null || amount <= 0) return t('invalid_amount');
+                        if (amount > totalPending) return '${t('invalid_amount')} (Max: ₹${AppTranslations.formatCurrency(totalPending, lang)})';
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    Text(t('payment_mode'), style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Colors.black54)),
+                    const SizedBox(height: 6),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 4,
+                      children: paymentModes.map((modeKey) {
+                        final isSelected = selectedMode == modeKey;
+                        return ChoiceChip(
+                          label: Text(t(modeKey), style: TextStyle(fontSize: 12, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
+                          selected: isSelected,
+                          selectedColor: Theme.of(context).primaryColor.withValues(alpha: 0.2),
+                          onSelected: (val) {
+                            if (val) setDialogState(() => selectedMode = modeKey);
+                          },
+                        );
+                      }).toList(),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(onPressed: () => Navigator.pop(context), child: Text(t('cancel'))),
+                ElevatedButton(
+                  onPressed: () async {
+                    if (formKey.currentState!.validate()) {
+                      final db = ref.read(databaseProvider);
+                      final paymentAmount = double.parse(amountController.text.trim());
+
+                      // Allocate payment across unpaid orders (oldest first - FIFO)
+                      final unpaidOrders = orders
+                          .where((o) => o.totalAmount > o.paidAmount)
+                          .toList()
+                        ..sort((a, b) => a.date.compareTo(b.date));
+
+                      double remainingToAllocate = paymentAmount;
+
+                      await db.transaction(() async {
+                        for (final order in unpaidOrders) {
+                          if (remainingToAllocate <= 0) break;
+                          final orderPending = order.totalAmount - order.paidAmount;
+                          final alloc = remainingToAllocate > orderPending ? orderPending : remainingToAllocate;
+
+                          // 1. Insert Payment Record
+                          await db.into(db.payments).insert(
+                            PaymentsCompanion.insert(
+                              orderId: order.id,
+                              amount: alloc,
+                              date: DateTime.now(),
+                            ),
+                          );
+
+                          // 2. Update Order
+                          final newPaidAmount = order.paidAmount + alloc;
+                          await (db.update(db.orders)..where((o) => o.id.equals(order.id))).write(
+                            OrdersCompanion(paidAmount: drift.Value(newPaidAmount)),
+                          );
+
+                          // 3. Cancel reminder if fully settled
+                          if (newPaidAmount >= order.totalAmount) {
+                            await NotificationHelper.cancelReminder(order.id);
+                          }
+
+                          remainingToAllocate -= alloc;
+                        }
+                      });
+
+                      if (context.mounted) {
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('${t('quick_payment')}: ₹${AppTranslations.formatCurrency(paymentAmount, lang)} ✓')),
+                        );
+                      }
+                    }
+                  },
+                  child: Text(t('save')),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 
@@ -109,7 +244,23 @@ class PartyDetailsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(party.localizedName(lang), style: const TextStyle(fontWeight: FontWeight.bold)),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(party.localizedName(lang), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            if (party.phone != null && party.phone!.isNotEmpty)
+              Text(party.phone!, style: const TextStyle(fontSize: 12, color: Colors.white70)),
+          ],
+        ),
+        actions: [
+          if (party.phone != null && party.phone!.isNotEmpty) ...[
+            IconButton(
+              icon: const Icon(Icons.call, color: Colors.white),
+              tooltip: t('call'),
+              onPressed: () => ActionHelper.makePhoneCall(party.phone!),
+            ),
+          ],
+        ],
       ),
       body: ordersAsync.when(
         data: (orders) {
@@ -160,6 +311,55 @@ class PartyDetailsScreen extends ConsumerWidget {
                         Text(AppTranslations.formatNumber(totalTransactions, lang), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                       ],
                     ),
+                    // Quick Action Buttons
+                    if (pendingAmount > 0 || (party.phone != null && party.phone!.isNotEmpty)) ...[
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          if (party.phone != null && party.phone!.isNotEmpty && pendingAmount > 0) ...[
+                            Expanded(
+                              child: OutlinedButton.icon(
+                                onPressed: () => ActionHelper.sendWhatsAppReminder(
+                                  phoneNumber: party.phone!,
+                                  partyName: party.localizedName(lang),
+                                  pendingAmount: pendingAmount,
+                                  lang: lang,
+                                ),
+                                icon: const Icon(Icons.chat, color: Colors.green, size: 18),
+                                label: Text(
+                                  t('send_reminder_whatsapp'),
+                                  style: const TextStyle(color: Colors.green, fontSize: 12, fontWeight: FontWeight.bold),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                style: OutlinedButton.styleFrom(
+                                  side: const BorderSide(color: Colors.green),
+                                  padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                          ],
+                          if (pendingAmount > 0) ...[
+                            Expanded(
+                              child: ElevatedButton.icon(
+                                onPressed: () => _showQuickAccountPaymentDialog(context, ref, orders, pendingAmount, t, lang),
+                                icon: const Icon(Icons.currency_rupee, size: 18),
+                                label: Text(
+                                  t('quick_payment'),
+                                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.green.shade700,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ],
                   ],
                 ),
               ),
