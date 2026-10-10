@@ -27,6 +27,11 @@ final saleOrdersProvider = StreamProvider<List<Order>>((ref) {
   return (db.select(db.orders)..where((o) => o.type.equals(OrderType.sale.index))).watch();
 });
 
+final allOrdersProvider = StreamProvider<List<Order>>((ref) {
+  final db = ref.watch(databaseProvider);
+  return db.select(db.orders).watch();
+});
+
 final ordersByPartyProvider = StreamProvider.family<List<Order>, int>((ref, partyId) {
   final db = ref.watch(databaseProvider);
   return (db.select(db.orders)..where((o) => o.partyId.equals(partyId))).watch();

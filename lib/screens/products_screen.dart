@@ -40,9 +40,48 @@ class _ProductsScreenState extends ConsumerState<ProductsScreen> {
     // Price and Stock
     final priceController = TextEditingController(text: productToEdit?.price.toString() ?? '');
     final stockController = TextEditingController(text: productToEdit?.stock.toString() ?? '');
+    String selectedUnit = productToEdit?.unit ?? 'Meter';
+    final units = ['Meter', 'Pcs', 'Roll', 'Than', 'Bundle'];
     
     bool isManual = false;
     final isEdit = productToEdit != null;
+
+    void deleteProduct(BuildContext dialogContext) async {
+      final confirm = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(t('delete')),
+          content: Text(t('delete_confirm')),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(t('cancel'))),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text(t('delete')),
+            ),
+          ],
+        ),
+      );
+
+      if (confirm == true && productToEdit != null) {
+        final prodId = productToEdit.id;
+        final db = ref.read(databaseProvider);
+        final used = await (db.select(db.orderItems)..where((oi) => oi.productId.equals(prodId))).get();
+        if (used.isNotEmpty) {
+          if (dialogContext.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(t('product_in_use_warning')), backgroundColor: Colors.orange.shade800),
+            );
+          }
+          return;
+        }
+        await (db.delete(db.products)..where((p) => p.id.equals(prodId))).go();
+        if (dialogContext.mounted) Navigator.pop(dialogContext);
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(t('product_deleted'))));
+        }
+      }
+    }
 
     showDialog(
       context: context,
@@ -56,6 +95,7 @@ class _ProductsScreenState extends ConsumerState<ProductsScreen> {
                   key: formKey,
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
                         children: [
@@ -109,16 +149,47 @@ class _ProductsScreenState extends ConsumerState<ProductsScreen> {
                       ],
                       
                       const SizedBox(height: 16),
+                      Text(t('unit'), style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Colors.black54)),
+                      const SizedBox(height: 6),
+                      Wrap(
+                        spacing: 8,
+                        children: units.map((u) {
+                          String unitLabel = u;
+                          if (u == 'Meter') unitLabel = t('unit_meter');
+                          if (u == 'Pcs') unitLabel = t('unit_pcs');
+                          if (u == 'Roll') unitLabel = t('unit_roll');
+                          if (u == 'Than') unitLabel = t('unit_than');
+                          if (u == 'Bundle') unitLabel = t('unit_bundle');
+                          final isSelected = selectedUnit == u;
+                          return ChoiceChip(
+                            label: Text(unitLabel),
+                            selected: isSelected,
+                            onSelected: (val) {
+                              if (val) setState(() => selectedUnit = u);
+                            },
+                          );
+                        }).toList(),
+                      ),
+
+                      const SizedBox(height: 16),
                       TextFormField(
                         controller: priceController,
-                        decoration: InputDecoration(labelText: t('price'), prefixIcon: const Icon(Icons.currency_rupee)),
+                        decoration: InputDecoration(
+                          labelText: t('price'), 
+                          prefixIcon: const Icon(Icons.currency_rupee),
+                          suffixText: '/ $selectedUnit',
+                        ),
                         keyboardType: const TextInputType.numberWithOptions(decimal: true),
                         validator: (val) => val == null || double.tryParse(val) == null ? t('err_invalid_amount') : null,
                       ),
                       const SizedBox(height: 16),
                       TextFormField(
                         controller: stockController,
-                        decoration: InputDecoration(labelText: t('stock'), prefixIcon: const Icon(Icons.layers)),
+                        decoration: InputDecoration(
+                          labelText: t('stock'), 
+                          prefixIcon: const Icon(Icons.layers),
+                          suffixText: selectedUnit,
+                        ),
                         keyboardType: TextInputType.number,
                         validator: (val) => val == null || int.tryParse(val) == null ? t('err_invalid_qty') : null,
                       ),
@@ -127,6 +198,13 @@ class _ProductsScreenState extends ConsumerState<ProductsScreen> {
                 ),
               ),
               actions: [
+                if (isEdit)
+                  TextButton.icon(
+                    icon: const Icon(Icons.delete, color: Colors.red, size: 18),
+                    label: Text(t('delete'), style: const TextStyle(color: Colors.red)),
+                    onPressed: () => deleteProduct(context),
+                  ),
+                const Spacer(),
                 TextButton(onPressed: () => Navigator.pop(context), child: Text(t('cancel'))),
                 ElevatedButton(
                   onPressed: () async {
@@ -160,6 +238,7 @@ class _ProductsScreenState extends ConsumerState<ProductsScreen> {
                             nameGu: drift.Value(finalGu),
                             price: drift.Value(price),
                             stock: drift.Value(stock),
+                            unit: drift.Value(selectedUnit),
                           ),
                         );
                         
@@ -175,6 +254,7 @@ class _ProductsScreenState extends ConsumerState<ProductsScreen> {
                             nameGu: finalGu,
                             price: drift.Value(price),
                             stock: drift.Value(stock),
+                            unit: drift.Value(selectedUnit),
                           ),
                         );
                         if (context.mounted) Navigator.pop(context);
@@ -280,21 +360,47 @@ class _ProductsScreenState extends ConsumerState<ProductsScreen> {
                 margin: const EdgeInsets.only(bottom: 12.0),
                 child: ListTile(
                   onTap: () => _showEditDialog(context, ref, productToEdit: product),
-                  title: Text(product.localizedDisplayName(lang), style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
-                  subtitle: Text('${t('price')}: ₹${AppTranslations.formatCurrency(product.price, lang)}', style: GoogleFonts.outfit()),
-                  trailing: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: product.stock > 0 ? Colors.teal.withValues(alpha: 0.1) : Colors.red.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      '${t('qty')}: ${AppTranslations.formatNumber(product.stock, lang)}',
-                      style: GoogleFonts.outfit(
-                        fontWeight: FontWeight.bold,
-                        color: product.stock > 0 ? Colors.teal : Colors.red,
+                  title: Text(
+                    product.localizedDisplayName(lang), 
+                    style: GoogleFonts.outfit(fontWeight: FontWeight.w600, fontSize: 16),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  subtitle: Text(
+                    '₹${AppTranslations.formatCurrency(product.price, lang)} / ${product.localizedUnit(lang)}',
+                    style: GoogleFonts.outfit(color: Colors.black87),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: product.stock > 5
+                              ? Colors.teal.withValues(alpha: 0.1)
+                              : (product.stock > 0
+                                  ? Colors.orange.withValues(alpha: 0.1)
+                                  : Colors.red.withValues(alpha: 0.1)),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          '${AppTranslations.formatNumber(product.stock, lang)} ${product.localizedUnit(lang)}',
+                          style: GoogleFonts.outfit(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                            color: product.stock > 5
+                                ? Colors.teal.shade800
+                                : (product.stock > 0 ? Colors.orange.shade900 : Colors.red.shade800),
+                          ),
+                        ),
                       ),
-                    ),
+                      IconButton(
+                        icon: const Icon(Icons.edit, color: Colors.blueGrey, size: 20),
+                        onPressed: () => _showEditDialog(context, ref, productToEdit: product),
+                      ),
+                    ],
                   ),
                 ),
               );
@@ -305,6 +411,7 @@ class _ProductsScreenState extends ConsumerState<ProductsScreen> {
         error: (err, stack) => Center(child: Text('Error: $err')),
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'add_product_fab',
         onPressed: () => _showEditDialog(context, ref),
         child: const Icon(Icons.add),
       ),

@@ -95,40 +95,47 @@ flowchart TD
 ## ✅ Currently Implemented Features
 
 ### 1. 🗄️ Database & Core Layer
-- [x] **Drift SQLite Engine (Schema v7)**: Full local relational persistence without any external server dependency.
-- [x] **Auto-seed demo data**: Pre-loaded demo products, wholesale suppliers, and retail customer records for instant testing.
+- [x] **Zero-Login Architecture**: Instant direct launch to main business screens without any login or authentication barrier.
+- [x] **Drift SQLite Engine (Schema v9)**: Non-destructive migrations supporting product units, firm names, addresses, GSTIN, order notes, and payment modes/notes.
+- [x] **Auto-seed demo data**: Pre-loaded demo products, wholesale suppliers, retail customer records, and orders for immediate testing.
 - [x] **Multi-language DB Columns**: Dual & triple script schema (`nameEn`, `nameHi`, `nameGu`) for zero-latency localized rendering.
 
 ### 2. 🌐 Multi-Language & Formatting
 - [x] Instant runtime language switcher between **English**, **Hindi (हिंदी)**, and **Gujarati (ગુજરાતી)**.
 - [x] Automatic Google Translate API bridge: Enter party or product name in any language and it populates En/Hi/Gu automatically.
-- [x] Indian numbering format with currency symbols (`₹1,25,000`).
+- [x] Localized numbers and currency formatting across all views (`₹1,25,000` / `૧,૨૫,૦૦૦`).
 
-### 3. 📦 Products & Catalog
-- [x] Add & Edit product with Name, Variety/Variant, Price, and Initial Stock.
-- [x] Real-time product search with localized matching.
-- [x] Product list with stock counter and price tag.
+### 3. 📦 Products & Measurement Units
+- [x] Measurement Units support tailored for textiles & retail: **Meter (મીટર)**, **Pcs (નંગ)**, **Roll (રોલ)**, **Than (તાકા)**, and **Bundle (બંડલ)**.
+- [x] Full Edit & Delete management with safe in-use foreign key checks.
+- [x] Real-time product search with localized matching and stock status pill indicators.
 
 ### 4. 👥 Parties (Customer & Wholesale Supplier)
-- [x] Unified Party directory separated by tabs: **Customers (ગ્રાહક)** and **Suppliers (વેપારી)**.
-- [x] Add/Edit Party with Name, Phone Number, and Type.
-- [x] Party Search bar with dynamic filtering.
+- [x] Unified directory separated by tabs: **Customers (ગ્રાહક)** and **Suppliers (વેપારી)**.
+- [x] Comprehensive party profile: Person Name, Shop / Firm Name, Phone Number, Physical Address, and GSTIN / PAN.
+- [x] **High-Speed Filtering**: 1-Tap toggle for **All Parties** vs **Only With Pending Balance (બાકી વાળા)**.
+- [x] Live balance badge on every party card (`₹X Pending` in Red / `Settled` in Green).
+- [x] Full Edit & Delete management with safe cascading deletions and confirmation dialogs.
+- [x] Direct 1-tap **Phone Call** dialer and 1-tap **WhatsApp Payment Reminder** with pre-drafted localized message.
 
 ### 5. 🧾 Order & Bill Management
-- [x] **Purchase Order Form**: Enter Supplier name, select products, specify quantities and unit rates, auto-calculate total.
-- [x] **Sales Bill Form**: Enter Customer name, add line items, live item subtotal calculation.
-- [x] Automatic stock level adjustment on bill submission (+ for Purchase, - for Sale).
-- [x] Dedicated **Book Screens** (Purchase Book & Sales Book) with cumulative book balance totals.
+- [x] **Streamlined Billing**: Auto-selects product price, sets default quantity to 1, and displays dynamic unit badge.
+- [x] **Fast Party Selection**: Autocomplete plus 1-tap searchable bottom sheet modal to prevent repetitive typing.
+- [x] **Order Notes & Challan**: Dedicated notes field for delivery challans and references.
+- [x] **Safe Cancellation**: Delete order action with automatic stock restoration and notification cancellation.
+- [x] Dedicated **Book Screens** (Purchase Book & Sales Book) with cumulative balances and party links.
 
-### 6. 💰 Payments & Basic Ledger
-- [x] Party details screen showing total transactions, pending balance, and received balance.
-- [x] Order-level partial payment entry popup.
-- [x] Payment history timeline nested under each order bill.
+### 6. 💰 Payments & Khata Ledger
+- [x] **Quick Account-Level Payment (ખાતા જમા)**: Direct 1-tap payment button allocating FIFO across oldest unpaid bills.
+- [x] Payment modes supported: **Cash**, **UPI / Online**, **Cheque**, and **Bank Transfer**.
+- [x] Payment notes and transaction history with mode badge and date.
+- [x] Delete payment entry with confirmation and automatic order balance recalculation.
+- [x] Dashboard cards displaying **Total Receivables (Customers)** and **Total Payables (Wholesalers)**.
 
-### 7. 🔔 Reminders & Notifications
-- [x] Order-level reminder toggle and customizable reminder duration (in days).
-- [x] Integration with `flutter_local_notifications` and `timezone` for scheduled device notifications.
-- [x] Overdue status badge highlighting orders that passed reminder days without full payment.
+### 7. 🛡️ Crash & Overflow Protection
+- [x] Zero `RangeError` on initial letter formatting of empty contact strings.
+- [x] Zero `StateError: Bad state: No element` through safe fallback product and party queries.
+- [x] Zero `RenderFlex` overflow or clipped text through responsive flex constraints, ellipsis, and scroll views.
 
 ---
 

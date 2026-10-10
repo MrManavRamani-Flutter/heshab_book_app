@@ -37,6 +37,7 @@ class PartyDetailsScreen extends ConsumerWidget {
   ) {
     final formKey = GlobalKey<FormState>();
     final amountController = TextEditingController();
+    final noteController = TextEditingController();
     String selectedMode = 'mode_cash';
 
     final paymentModes = ['mode_cash', 'mode_upi', 'mode_cheque', 'mode_bank'];
@@ -48,53 +49,64 @@ class PartyDetailsScreen extends ConsumerWidget {
           builder: (context, setDialogState) {
             return AlertDialog(
               title: Text(t('quick_payment'), style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
-              content: Form(
-                key: formKey,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '${t('pending_amount')}: ₹${AppTranslations.formatCurrency(totalPending, lang)}',
-                      style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red.shade700, fontSize: 16),
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: amountController,
-                      decoration: InputDecoration(
-                        labelText: t('enter_amount'),
-                        prefixIcon: const Icon(Icons.currency_rupee),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+              content: SingleChildScrollView(
+                child: Form(
+                  key: formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${t('pending_amount')}: ₹${AppTranslations.formatCurrency(totalPending, lang)}',
+                        style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red.shade700, fontSize: 16),
                       ),
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      autofocus: true,
-                      validator: (val) {
-                        if (val == null || val.trim().isEmpty) return t('err_required');
-                        final amount = double.tryParse(val);
-                        if (amount == null || amount <= 0) return t('invalid_amount');
-                        if (amount > totalPending) return '${t('invalid_amount')} (Max: ₹${AppTranslations.formatCurrency(totalPending, lang)})';
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    Text(t('payment_mode'), style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Colors.black54)),
-                    const SizedBox(height: 6),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 4,
-                      children: paymentModes.map((modeKey) {
-                        final isSelected = selectedMode == modeKey;
-                        return ChoiceChip(
-                          label: Text(t(modeKey), style: TextStyle(fontSize: 12, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
-                          selected: isSelected,
-                          selectedColor: Theme.of(context).primaryColor.withValues(alpha: 0.2),
-                          onSelected: (val) {
-                            if (val) setDialogState(() => selectedMode = modeKey);
-                          },
-                        );
-                      }).toList(),
-                    ),
-                  ],
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: amountController,
+                        decoration: InputDecoration(
+                          labelText: t('enter_amount'),
+                          prefixIcon: const Icon(Icons.currency_rupee),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                        ),
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        autofocus: true,
+                        validator: (val) {
+                          if (val == null || val.trim().isEmpty) return t('err_required');
+                          final amount = double.tryParse(val);
+                          if (amount == null || amount <= 0) return t('invalid_amount');
+                          if (amount > totalPending) return '${t('invalid_amount')} (Max: ₹${AppTranslations.formatCurrency(totalPending, lang)})';
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      Text(t('payment_mode'), style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Colors.black54)),
+                      const SizedBox(height: 6),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 4,
+                        children: paymentModes.map((modeKey) {
+                          final isSelected = selectedMode == modeKey;
+                          return ChoiceChip(
+                            label: Text(t(modeKey), style: TextStyle(fontSize: 12, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
+                            selected: isSelected,
+                            selectedColor: Theme.of(context).primaryColor.withValues(alpha: 0.2),
+                            onSelected: (val) {
+                              if (val) setDialogState(() => selectedMode = modeKey);
+                            },
+                          );
+                        }).toList(),
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: noteController,
+                        decoration: InputDecoration(
+                          labelText: t('payment_note'),
+                          prefixIcon: const Icon(Icons.note_alt_outlined),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               actions: [
@@ -104,6 +116,7 @@ class PartyDetailsScreen extends ConsumerWidget {
                     if (formKey.currentState!.validate()) {
                       final db = ref.read(databaseProvider);
                       final paymentAmount = double.parse(amountController.text.trim());
+                      final noteVal = noteController.text.trim().isEmpty ? null : noteController.text.trim();
 
                       // Allocate payment across unpaid orders (oldest first - FIFO)
                       final unpaidOrders = orders
@@ -125,6 +138,8 @@ class PartyDetailsScreen extends ConsumerWidget {
                               orderId: order.id,
                               amount: alloc,
                               date: DateTime.now(),
+                              mode: drift.Value(selectedMode),
+                              note: drift.Value(noteVal),
                             ),
                           );
 
@@ -164,76 +179,162 @@ class PartyDetailsScreen extends ConsumerWidget {
   void _showAddPaymentDialog(BuildContext context, WidgetRef ref, Order order, String Function(String) t, String lang) {
     final formKey = GlobalKey<FormState>();
     final amountController = TextEditingController();
+    final noteController = TextEditingController();
+    String selectedMode = 'mode_cash';
+    final paymentModes = ['mode_cash', 'mode_upi', 'mode_cheque', 'mode_bank'];
     final pendingAmount = order.totalAmount - order.paidAmount;
 
     showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: Text(t('add_payment')),
-          content: Form(
-            key: formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text('${t('pending_amount')}: ₹${AppTranslations.formatCurrency(pendingAmount, lang)}', style: const TextStyle(fontWeight: FontWeight.bold)),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: amountController,
-                  decoration: InputDecoration(
-                    labelText: t('enter_amount'), 
-                    prefixIcon: const Icon(Icons.currency_rupee),
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: Text(t('add_payment')),
+              content: SingleChildScrollView(
+                child: Form(
+                  key: formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('${t('pending_amount')}: ₹${AppTranslations.formatCurrency(pendingAmount, lang)}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: amountController,
+                        decoration: InputDecoration(
+                          labelText: t('enter_amount'), 
+                          prefixIcon: const Icon(Icons.currency_rupee),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                        ),
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        validator: (val) {
+                          if (val == null || val.trim().isEmpty) return t('err_required');
+                          final amount = double.tryParse(val);
+                          if (amount == null || amount <= 0 || amount > pendingAmount) return t('invalid_amount');
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      Text(t('payment_mode'), style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Colors.black54)),
+                      const SizedBox(height: 6),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 4,
+                        children: paymentModes.map((modeKey) {
+                          final isSelected = selectedMode == modeKey;
+                          return ChoiceChip(
+                            label: Text(t(modeKey), style: TextStyle(fontSize: 12, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
+                            selected: isSelected,
+                            selectedColor: Theme.of(context).primaryColor.withValues(alpha: 0.2),
+                            onSelected: (val) {
+                              if (val) setDialogState(() => selectedMode = modeKey);
+                            },
+                          );
+                        }).toList(),
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: noteController,
+                        decoration: InputDecoration(
+                          labelText: t('payment_note'),
+                          prefixIcon: const Icon(Icons.note_alt_outlined),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                        ),
+                      ),
+                    ],
                   ),
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  validator: (val) {
-                    if (val == null || val.trim().isEmpty) return t('err_required');
-                    final amount = double.tryParse(val);
-                    if (amount == null || amount <= 0 || amount > pendingAmount) return t('invalid_amount');
-                    return null;
+                ),
+              ),
+              actions: [
+                TextButton(onPressed: () => Navigator.pop(context), child: Text(t('cancel'))),
+                ElevatedButton(
+                  onPressed: () async {
+                    if (formKey.currentState!.validate()) {
+                      final db = ref.read(databaseProvider);
+                      final paymentAmount = double.parse(amountController.text.trim());
+                      final noteVal = noteController.text.trim().isEmpty ? null : noteController.text.trim();
+                      final newPaidAmount = order.paidAmount + paymentAmount;
+                      
+                      await db.transaction(() async {
+                        // 1. Insert Payment Record
+                        await db.into(db.payments).insert(
+                          PaymentsCompanion.insert(
+                            orderId: order.id,
+                            amount: paymentAmount,
+                            date: DateTime.now(),
+                            mode: drift.Value(selectedMode),
+                            note: drift.Value(noteVal),
+                          ),
+                        );
+                        
+                        // 2. Update Order Paid Amount
+                        await (db.update(db.orders)..where((o) => o.id.equals(order.id))).write(
+                          OrdersCompanion(paidAmount: drift.Value(newPaidAmount)),
+                        );
+
+                        // 3. Cancel reminder if fully paid
+                        if (newPaidAmount >= order.totalAmount) {
+                          await NotificationHelper.cancelReminder(order.id);
+                        }
+                      });
+                      
+                      if (context.mounted) Navigator.pop(context);
+                    }
                   },
+                  child: Text(t('save')),
                 ),
               ],
-            ),
-          ),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: Text(t('cancel'))),
-            ElevatedButton(
-              onPressed: () async {
-                if (formKey.currentState!.validate()) {
-                  final db = ref.read(databaseProvider);
-                  final paymentAmount = double.parse(amountController.text.trim());
-                  final newPaidAmount = order.paidAmount + paymentAmount;
-                  
-                  await db.transaction(() async {
-                    // 1. Insert Payment Record
-                    await db.into(db.payments).insert(
-                      PaymentsCompanion.insert(
-                        orderId: order.id,
-                        amount: paymentAmount,
-                        date: DateTime.now(),
-                      ),
-                    );
-                    
-                    // 2. Update Order Paid Amount
-                    await (db.update(db.orders)..where((o) => o.id.equals(order.id))).write(
-                      OrdersCompanion(paidAmount: drift.Value(newPaidAmount)),
-                    );
-
-                    // 3. Cancel reminder if fully paid
-                    if (newPaidAmount >= order.totalAmount) {
-                      await NotificationHelper.cancelReminder(order.id);
-                    }
-                  });
-                  
-                  if (context.mounted) Navigator.pop(context);
-                }
-              },
-              child: Text(t('save')),
-            ),
-          ],
+            );
+          },
         );
       },
     );
+  }
+
+  Future<void> _deleteOrder(BuildContext context, WidgetRef ref, Order order, String Function(String) t) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(t('delete')),
+        content: Text('${t('delete_confirm')}\n\n${t('delete_order_warning')}'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(t('cancel'))),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(t('delete')),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      final db = ref.read(databaseProvider);
+      await db.transaction(() async {
+        final items = await (db.select(db.orderItems)..where((oi) => oi.orderId.equals(order.id))).get();
+        for (final item in items) {
+          final product = await (db.select(db.products)..where((p) => p.id.equals(item.productId))).getSingleOrNull();
+          if (product != null) {
+            final restoredStock = order.type == OrderType.sale
+                ? product.stock + item.quantity
+                : product.stock - item.quantity;
+            await (db.update(db.products)..where((p) => p.id.equals(product.id))).write(
+              ProductsCompanion(stock: drift.Value(restoredStock)),
+            );
+          }
+        }
+
+        await NotificationHelper.cancelReminder(order.id);
+        await (db.delete(db.payments)..where((p) => p.orderId.equals(order.id))).go();
+        await (db.delete(db.orderItems)..where((oi) => oi.orderId.equals(order.id))).go();
+        await (db.delete(db.orders)..where((o) => o.id.equals(order.id))).go();
+      });
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(t('order_deleted'))));
+      }
+    }
   }
 
   @override
@@ -247,9 +348,19 @@ class PartyDetailsScreen extends ConsumerWidget {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(party.localizedName(lang), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-            if (party.phone != null && party.phone!.isNotEmpty)
-              Text(party.phone!, style: const TextStyle(fontSize: 12, color: Colors.white70)),
+            Text(
+              party.localizedName(lang), 
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            if (party.displaySubtitle('').isNotEmpty)
+              Text(
+                party.displaySubtitle(''), 
+                style: const TextStyle(fontSize: 12, color: Colors.white70),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
           ],
         ),
         actions: [
@@ -447,22 +558,29 @@ class PartyDetailsScreen extends ConsumerWidget {
                             children: [
                               _OrderItemsList(orderId: order.id, t: t),
                               _PaymentHistoryList(order: order, t: t, lang: lang),
-                              if (!isPaid)
-                                Padding(
-                                  padding: const EdgeInsets.all(12.0),
-                                  child: Align(
-                                    alignment: Alignment.centerRight,
-                                    child: OutlinedButton.icon(
-                                      onPressed: () => _showAddPaymentDialog(context, ref, order, t, lang),
-                                      icon: const Icon(Icons.payment, size: 18),
-                                      label: Text(t('add_payment')),
-                                      style: OutlinedButton.styleFrom(
-                                        foregroundColor: Colors.green.shade700,
-                                        side: BorderSide(color: Colors.green.shade700),
-                                      ),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    TextButton.icon(
+                                      onPressed: () => _deleteOrder(context, ref, order, t),
+                                      icon: const Icon(Icons.delete_outline, color: Colors.red, size: 18),
+                                      label: Text(t('delete'), style: const TextStyle(color: Colors.red, fontSize: 13)),
                                     ),
-                                  ),
+                                    if (!isPaid)
+                                      OutlinedButton.icon(
+                                        onPressed: () => _showAddPaymentDialog(context, ref, order, t, lang),
+                                        icon: const Icon(Icons.payment, size: 18),
+                                        label: Text(t('add_payment')),
+                                        style: OutlinedButton.styleFrom(
+                                          foregroundColor: Colors.green.shade700,
+                                          side: BorderSide(color: Colors.green.shade700),
+                                        ),
+                                      ),
+                                  ],
                                 ),
+                              ),
                             ],
                           ),
                         );
@@ -538,14 +656,27 @@ class _OrderItemsList extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: items.map((item) {
-                  final product = products.firstWhere((p) => p.id == item.productId);
+                  final product = products.where((p) => p.id == item.productId).firstOrNull;
+                  final prodName = product != null ? product.localizedDisplayName(lang) : 'Item #${item.productId}';
+                  final prodUnit = product != null ? ' ${product.localizedUnit(lang)}' : '';
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 4.0),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Expanded(child: Text(product.localizedDisplayName(lang), style: const TextStyle(fontWeight: FontWeight.w500))),
-                        Text('${AppTranslations.formatNumber(item.quantity, lang)} x ₹${AppTranslations.formatCurrency(item.price, lang)} = ₹${AppTranslations.formatCurrency(item.total, lang)}', style: TextStyle(color: Colors.grey.shade700)),
+                        Expanded(
+                          child: Text(
+                            prodName,
+                            style: const TextStyle(fontWeight: FontWeight.w500),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          '${AppTranslations.formatNumber(item.quantity, lang)}$prodUnit x ₹${AppTranslations.formatCurrency(item.price, lang)} = ₹${AppTranslations.formatCurrency(item.total, lang)}',
+                          style: TextStyle(color: Colors.grey.shade700),
+                        ),
                       ],
                     ),
                   );
@@ -592,26 +723,60 @@ class _PaymentHistoryList extends ConsumerWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('+ ₹${AppTranslations.formatCurrency(payment.amount, lang)}', style: TextStyle(color: Colors.green.shade700, fontWeight: FontWeight.bold)),
-                          Text(AppTranslations.formatStringNumber(DateFormat('dd MMM, hh:mm a').format(payment.date), lang), style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
-                        ],
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Text('+ ₹${AppTranslations.formatCurrency(payment.amount, lang)}', style: TextStyle(color: Colors.green.shade700, fontWeight: FontWeight.bold)),
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(color: Colors.green.shade100, borderRadius: BorderRadius.circular(4)),
+                                  child: Text(t(payment.mode), style: TextStyle(color: Colors.green.shade900, fontSize: 10, fontWeight: FontWeight.bold)),
+                                ),
+                              ],
+                            ),
+                            if (payment.note != null && payment.note!.isNotEmpty)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 2.0),
+                                child: Text(payment.note!, style: const TextStyle(color: Colors.black87, fontSize: 12, fontStyle: FontStyle.italic), maxLines: 2, overflow: TextOverflow.ellipsis),
+                              ),
+                            Text(AppTranslations.formatStringNumber(DateFormat('dd MMM, hh:mm a').format(payment.date), lang), style: TextStyle(color: Colors.grey.shade600, fontSize: 11)),
+                          ],
+                        ),
                       ),
                       IconButton(
                         icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 20),
                         tooltip: t('delete_payment'),
                         onPressed: () async {
-                          // Allow deleting a payment (mistake reverting)
-                          final db = ref.read(databaseProvider);
-                          final newPaidAmount = order.paidAmount - payment.amount;
-                          await db.transaction(() async {
-                            await (db.delete(db.payments)..where((p) => p.id.equals(payment.id))).go();
-                            await (db.update(db.orders)..where((o) => o.id.equals(order.id))).write(
-                              OrdersCompanion(paidAmount: drift.Value(newPaidAmount)),
-                            );
-                          });
+                          final confirm = await showDialog<bool>(
+                            context: context,
+                            builder: (ctx) => AlertDialog(
+                              title: Text(t('delete_payment')),
+                              content: Text(t('delete_confirm')),
+                              actions: [
+                                TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(t('cancel'))),
+                                ElevatedButton(
+                                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+                                  onPressed: () => Navigator.pop(ctx, true),
+                                  child: Text(t('delete')),
+                                ),
+                              ],
+                            ),
+                          );
+
+                          if (confirm == true) {
+                            final db = ref.read(databaseProvider);
+                            final newPaidAmount = (order.paidAmount - payment.amount).clamp(0.0, order.totalAmount);
+                            await db.transaction(() async {
+                              await (db.delete(db.payments)..where((p) => p.id.equals(payment.id))).go();
+                              await (db.update(db.orders)..where((o) => o.id.equals(order.id))).write(
+                                OrdersCompanion(paidAmount: drift.Value(newPaidAmount)),
+                              );
+                            });
+                          }
                         },
                       ),
                     ],

@@ -64,6 +64,9 @@ class BookScreen extends ConsumerWidget {
                   itemCount: sortedOrders.length,
                   itemBuilder: (context, index) {
                     final order = sortedOrders[index];
+                    final isPaid = order.totalAmount <= order.paidAmount;
+                    final pendingAmount = order.totalAmount - order.paidAmount;
+
                     return Card(
                       margin: const EdgeInsets.only(bottom: 12),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.3))),
@@ -71,12 +74,63 @@ class BookScreen extends ConsumerWidget {
                         shape: const Border(),
                         title: _PartyNameWidget(partyId: order.partyId),
                         subtitle: Padding(
-                          padding: const EdgeInsets.only(top: 8.0),
-                          child: Text(AppTranslations.formatStringNumber(DateFormat('dd MMM yyyy, hh:mm a').format(order.date), lang), style: TextStyle(color: Theme.of(context).colorScheme.outline)),
+                          padding: const EdgeInsets.only(top: 6.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                AppTranslations.formatStringNumber(DateFormat('dd MMM yyyy, hh:mm a').format(order.date), lang), 
+                                style: TextStyle(color: Theme.of(context).colorScheme.outline, fontSize: 12),
+                              ),
+                              if (order.notes != null && order.notes!.isNotEmpty)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 2.0),
+                                  child: Text(
+                                    order.notes!, 
+                                    style: TextStyle(color: Colors.grey.shade700, fontSize: 12, fontStyle: FontStyle.italic),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                            ],
+                          ),
                         ),
-                        trailing: Text('₹${AppTranslations.formatCurrency(order.totalAmount, lang)}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Theme.of(context).colorScheme.onSurface)),
+                        trailing: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              '₹${AppTranslations.formatCurrency(order.totalAmount, lang)}', 
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Theme.of(context).colorScheme.onSurface),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              isPaid 
+                                  ? t('settled')
+                                  : '₹${AppTranslations.formatCurrency(pendingAmount, lang)} (${t('overdue')})',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                color: isPaid ? Colors.green.shade700 : Colors.red.shade700,
+                              ),
+                            ),
+                          ],
+                        ),
                         children: [
                           _OrderItemsList(orderId: order.id, t: t),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                TextButton.icon(
+                                  onPressed: () => context.push('/party-details/${order.partyId}'),
+                                  icon: const Icon(Icons.person, size: 16),
+                                  label: Text(t('party_details'), style: const TextStyle(fontSize: 12)),
+                                ),
+                              ],
+                            ),
+                          ),
                         ],
                       ),
                     );
@@ -109,9 +163,18 @@ class _PartyNameWidget extends ConsumerWidget {
     final lang = ref.watch(localeProvider);
     final partyAsync = ref.watch(partyByIdProvider(partyId));
     return partyAsync.when(
-      data: (party) => Text(party.localizedName(lang), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-      loading: () => const Text('...'),
-      error: (e, s) => const Text('Error'),
+      data: (party) {
+        final name = party.localizedName(lang);
+        final firm = party.firmName != null && party.firmName!.isNotEmpty ? ' (${party.firmName})' : '';
+        return Text(
+          '$name$firm', 
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        );
+      },
+      loading: () => const Text('...', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+      error: (e, s) => Text('Party #$partyId', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
     );
   }
 }
@@ -139,14 +202,27 @@ class _OrderItemsList extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: items.map((item) {
-                  final product = products.firstWhere((p) => p.id == item.productId);
+                  final product = products.where((p) => p.id == item.productId).firstOrNull;
+                  final prodName = product != null ? product.localizedDisplayName(lang) : 'Item #${item.productId}';
+                  final prodUnit = product != null ? ' ${product.localizedUnit(lang)}' : '';
                   return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 6.0),
+                    padding: const EdgeInsets.symmetric(vertical: 4.0),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Expanded(child: Text(product.localizedDisplayName(lang), style: const TextStyle(fontWeight: FontWeight.w500))),
-                        Text('${AppTranslations.formatNumber(item.quantity, lang)} x ₹${AppTranslations.formatCurrency(item.price, lang)} = ₹${AppTranslations.formatCurrency(item.total, lang)}', style: TextStyle(color: Colors.grey.shade700)),
+                        Expanded(
+                          child: Text(
+                            prodName, 
+                            style: const TextStyle(fontWeight: FontWeight.w500),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          '${AppTranslations.formatNumber(item.quantity, lang)}$prodUnit x ₹${AppTranslations.formatCurrency(item.price, lang)} = ₹${AppTranslations.formatCurrency(item.total, lang)}', 
+                          style: TextStyle(color: Colors.grey.shade700),
+                        ),
                       ],
                     ),
                   );

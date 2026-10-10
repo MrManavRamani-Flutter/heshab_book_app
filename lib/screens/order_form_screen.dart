@@ -22,6 +22,7 @@ class OrderFormScreen extends ConsumerStatefulWidget {
 class _OrderFormScreenState extends ConsumerState<OrderFormScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _partyController = TextEditingController();
+  final TextEditingController _notesController = TextEditingController();
   Party? _selectedParty;
   final List<_OrderItemEntry> _entries = [];
   bool _isLoading = false;
@@ -106,6 +107,7 @@ class _OrderFormScreenState extends ConsumerState<OrderFormScreen> {
             totalAmount: _totalAmount,
             reminderEnabled: drift.Value(_reminderEnabled),
             reminderDays: drift.Value(_reminderDays),
+            notes: drift.Value(_notesController.text.trim().isEmpty ? null : _notesController.text.trim()),
           ),
         );
 
@@ -160,6 +162,7 @@ class _OrderFormScreenState extends ConsumerState<OrderFormScreen> {
   @override
   void dispose() {
     _partyController.dispose();
+    _notesController.dispose();
     for (var entry in _entries) {
       entry.quantityController.dispose();
       entry.priceController.dispose();
@@ -247,6 +250,87 @@ class _OrderFormScreenState extends ConsumerState<OrderFormScreen> {
                               decoration: InputDecoration(
                                 labelText: isPurchase ? t('wholesaler_name') : t('retailer_name'),
                                 prefixIcon: const Icon(Icons.person),
+                                suffixIcon: parties.isNotEmpty
+                                    ? IconButton(
+                                        icon: const Icon(Icons.arrow_drop_down_circle_outlined, color: Colors.blueGrey),
+                                        tooltip: t('quick_select_party'),
+                                        onPressed: () {
+                                          showModalBottomSheet(
+                                            context: context,
+                                            isScrollControlled: true,
+                                            shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+                                            builder: (ctx) {
+                                              String sheetSearch = '';
+                                              return StatefulBuilder(
+                                                builder: (ctx, setSheetState) {
+                                                  final sheetFiltered = parties.where((p) {
+                                                    if (sheetSearch.isEmpty) return true;
+                                                    final q = sheetSearch.toLowerCase();
+                                                    return p.nameEn.toLowerCase().contains(q) ||
+                                                           p.nameHi.toLowerCase().contains(q) ||
+                                                           p.nameGu.toLowerCase().contains(q) ||
+                                                           (p.firmName?.toLowerCase().contains(q) ?? false) ||
+                                                           (p.phone?.contains(q) ?? false);
+                                                  }).toList();
+
+                                                  return SizedBox(
+                                                    height: MediaQuery.of(context).size.height * 0.7,
+                                                    child: Column(
+                                                      children: [
+                                                        Padding(
+                                                          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                                                          child: TextField(
+                                                            decoration: InputDecoration(
+                                                              hintText: t('search_party'),
+                                                              prefixIcon: const Icon(Icons.search),
+                                                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                                                              contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                                                            ),
+                                                            onChanged: (val) => setSheetState(() => sheetSearch = val),
+                                                          ),
+                                                        ),
+                                                        Expanded(
+                                                          child: sheetFiltered.isEmpty
+                                                              ? Center(child: Text(t('no_parties'), style: const TextStyle(color: Colors.grey)))
+                                                              : ListView.builder(
+                                                                  padding: const EdgeInsets.symmetric(vertical: 4),
+                                                                  itemCount: sheetFiltered.length,
+                                                                  itemBuilder: (ctx, pIdx) {
+                                                                    final party = sheetFiltered[pIdx];
+                                                                    final pName = party.localizedName(lang).trim();
+                                                                    final pInitial = pName.isNotEmpty ? pName.characters.first.toUpperCase() : '?';
+                                                                    return ListTile(
+                                                                      leading: CircleAvatar(
+                                                                        backgroundColor: AppTheme.khataRed.withValues(alpha: 0.1),
+                                                                        child: Text(
+                                                                          pInitial,
+                                                                          style: const TextStyle(color: AppTheme.khataRed, fontWeight: FontWeight.bold),
+                                                                        ),
+                                                                      ),
+                                                                      title: Text(pName, style: const TextStyle(fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
+                                                                      subtitle: Text(party.displaySubtitle(t('no_phone')), maxLines: 1, overflow: TextOverflow.ellipsis),
+                                                                      onTap: () {
+                                                                        setState(() {
+                                                                          _selectedParty = party;
+                                                                          _partyController.text = pName;
+                                                                          textEditingController.text = pName;
+                                                                        });
+                                                                        Navigator.pop(ctx);
+                                                                      },
+                                                                    );
+                                                                  },
+                                                                ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  );
+                                                },
+                                              );
+                                            },
+                                          );
+                                        },
+                                      )
+                                    : null,
                                 border: const OutlineInputBorder(),
                               ),
                               validator: (val) => val == null || val.trim().isEmpty ? t('err_required') : null,
@@ -287,8 +371,11 @@ class _OrderFormScreenState extends ConsumerState<OrderFormScreen> {
                                       onSelected: (Product p) {
                                         setState(() {
                                           entry.product = p;
-                                          if (entry.priceController.text.isEmpty) {
-                                            entry.price = p.price;
+                                          entry.price = p.price;
+                                          entry.priceController.text = p.price > 0 ? p.price.toStringAsFixed(2) : '';
+                                          if (entry.quantity <= 0) {
+                                            entry.quantity = 1;
+                                            entry.quantityController.text = '1';
                                           }
                                         });
                                       },
@@ -319,7 +406,8 @@ class _OrderFormScreenState extends ConsumerState<OrderFormScreen> {
                                     child: TextFormField(
                                       controller: entry.quantityController,
                                       decoration: InputDecoration(
-                                        labelText: t('qty'),
+                                        labelText: entry.product != null ? '${t('qty')} (${entry.product!.localizedUnit(lang)})' : t('qty'),
+                                        suffixText: entry.product?.localizedUnit(lang),
                                         border: const OutlineInputBorder(),
                                         prefixIcon: const Icon(Icons.numbers),
                                       ),
@@ -430,7 +518,19 @@ class _OrderFormScreenState extends ConsumerState<OrderFormScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 32),
+                    // Order Notes / Reference
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _notesController,
+                      decoration: InputDecoration(
+                        labelText: t('order_notes'),
+                        hintText: t('order_notes_hint'),
+                        prefixIcon: const Icon(Icons.note_alt_outlined),
+                        border: const OutlineInputBorder(),
+                      ),
+                      maxLines: 2,
+                    ),
+                    const SizedBox(height: 24),
                     
                     // Total Summary Card
                     Card(

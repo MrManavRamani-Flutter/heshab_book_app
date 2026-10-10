@@ -15,14 +15,11 @@ import 'screens/settings_screen.dart';
 
 import 'utils/notification_helper.dart';
 
-bool _hasSeenOnboarding = false;
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await NotificationHelper.init();
   
   final sharedPrefs = await SharedPreferences.getInstance();
-  _hasSeenOnboarding = sharedPrefs.getBool('has_seen_onboarding') ?? false;
   
   runApp(
     ProviderScope(
@@ -35,7 +32,7 @@ void main() async {
 }
 
 final _router = GoRouter(
-  initialLocation: _hasSeenOnboarding ? '/' : '/onboarding',
+  initialLocation: '/',
   routes: [
     GoRoute(
       path: '/onboarding',

@@ -1,7 +1,7 @@
 # 🛠️ Heshab Book — Issue Resolution & Health Log
 
 > **Health Status**: 🟢 **100% HEALTHY — ZERO ACTIVE ISSUES**  
-> **Last Reset & Audit**: 2026-10-09  
+> **Last Reset & Audit**: 2026-10-10  
 > **Project Version**: `1.0.0+1`  
 > **Target SDK**: Flutter `^3.11.3` • Dart `^3.11.3`
 
@@ -18,6 +18,9 @@
 | **ISS-005** | Build / Desugaring | Android Core Library Desugaring warnings | Java 8+ time APIs required by `flutter_local_notifications` | Configured `coreLibraryDesugaringEnabled = true` in `build.gradle` | ✅ **RESOLVED** |
 | **ISS-006** | UI / Forms | Edit product / party form race condition | Controllers populating before async data load completed | Refactored with `FutureBuilder` and idempotent loaded flags | ✅ **RESOLVED** |
 | **ISS-007** | Navigation | Hero animation crash on FloatingActionButtons | Multiple FABs sharing default Hero tag | Assigned unique `heroTag` to every FAB across all views | ✅ **RESOLVED** |
+| **ISS-008** | Crash / Range | `StateError: Bad state: No element` on deleted products in bills | `products.firstWhere` without fallback | Replaced with `products.where(...).firstOrNull` with safe fallback | ✅ **RESOLVED** |
+| **ISS-009** | Crash / Range | `RangeError` on initial character of empty party names | Unchecked `name.characters.first` | Added `name.trim().isNotEmpty ? ... : '?'` safety checks | ✅ **RESOLVED** |
+| **ISS-010** | UI / Overflow | `RenderFlex` overflow and eclipsed text on variable-length names | Missing text wrapping and flex constraints | Added `TextOverflow.ellipsis`, `maxLines`, and `SingleChildScrollView` to all forms and cards | ✅ **RESOLVED** |
 
 ---
 
@@ -25,7 +28,7 @@
 
 ```
 [✓] Flutter SDK: Compatible (Flutter 3.x, Dart 3.x)
-[✓] Drift SQLite Database: Clean (No schema corruption, Schema v7)
+[✓] Drift SQLite Database: Clean (No schema corruption, Schema v9)
 [✓] State Management: Clean (Riverpod v2, Zero leaked providers)
 [✓] Static Analysis: 0 warnings, 0 errors ('flutter analyze' passed cleanly)
 [✓] Git Working Tree: Clean & synchronized with origin/main

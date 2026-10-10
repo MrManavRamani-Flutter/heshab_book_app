@@ -15,6 +15,7 @@ class Products extends Table {
   TextColumn get varietyGu => text().nullable()();
   RealColumn get price => real().withDefault(const Constant(0.0))();
   IntColumn get stock => integer().withDefault(const Constant(0))();
+  TextColumn get unit => text().withDefault(const Constant('Meter'))();
 }
 
 class Parties extends Table {
@@ -24,6 +25,9 @@ class Parties extends Table {
   TextColumn get nameGu => text()();
   IntColumn get type => intEnum<OrderType>()(); // purchase = Wholesale, sale = Retailer
   TextColumn get phone => text().nullable()();
+  TextColumn get address => text().nullable()();
+  TextColumn get firmName => text().nullable()();
+  TextColumn get gstin => text().nullable()();
 }
 
 class Orders extends Table {
@@ -35,6 +39,7 @@ class Orders extends Table {
   RealColumn get paidAmount => real().withDefault(const Constant(0.0))();
   BoolColumn get reminderEnabled => boolean().withDefault(const Constant(true))();
   IntColumn get reminderDays => integer().withDefault(const Constant(1))();
+  TextColumn get notes => text().nullable()();
 }
 
 class OrderItems extends Table {
@@ -51,6 +56,8 @@ class Payments extends Table {
   IntColumn get orderId => integer().references(Orders, #id)();
   RealColumn get amount => real()();
   DateTimeColumn get date => dateTime()();
+  TextColumn get mode => text().withDefault(const Constant('Cash'))();
+  TextColumn get note => text().nullable()();
 }
 
 @DriftDatabase(tables: [Products, Parties, Orders, OrderItems, Payments])
@@ -58,7 +65,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 9;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -67,25 +74,28 @@ class AppDatabase extends _$AppDatabase {
           await _seedInitialData();
         },
         onUpgrade: (Migrator m, int from, int to) async {
-          // Development upgrade: blow away and rebuild for demo
-          await m.deleteTable('payments');
-          await m.deleteTable('order_items');
-          await m.deleteTable('orders');
-          await m.deleteTable('parties');
-          await m.deleteTable('products');
-          await m.createAll();
-          await _seedInitialData();
+          if (from < 8) {
+            await m.addColumn(products, products.unit);
+            await m.addColumn(parties, parties.address);
+            await m.addColumn(parties, parties.firmName);
+          }
+          if (from < 9) {
+            await m.addColumn(parties, parties.gstin);
+            await m.addColumn(orders, orders.notes);
+            await m.addColumn(payments, payments.mode);
+            await m.addColumn(payments, payments.note);
+          }
         },
       );
 
   Future<void> _seedInitialData() async {
     // 1. Seed Products
     final productsList = [
-      ProductsCompanion.insert(nameEn: 'Ashtar', nameHi: 'अस्तर', nameGu: 'અસ્તર', price: const Value(150.0), stock: const Value(100)),
-      ProductsCompanion.insert(nameEn: 'Blouse', nameHi: 'ब्लाउज', nameGu: 'બ્લાઉઝ', price: const Value(250.0), stock: const Value(50)),
-      ProductsCompanion.insert(nameEn: 'Chaniya', nameHi: 'चनिया', nameGu: 'ચણિયા', varietyEn: const Value('Cotton'), varietyHi: const Value('सूती'), varietyGu: const Value('સુતરાઉ'), price: const Value(500.0), stock: const Value(20)),
-      ProductsCompanion.insert(nameEn: 'Chaniya', nameHi: 'चनिया', nameGu: 'ચણિયા', varietyEn: const Value('Lijibiji'), varietyHi: const Value('लिजीबिजी'), varietyGu: const Value('લીજીબીજી'), price: const Value(600.0), stock: const Value(15)),
-      ProductsCompanion.insert(nameEn: 'Fancy Blouse', nameHi: 'फैंसी ब्लाउज', nameGu: 'ફેન્સી બ્લાઉઝ', price: const Value(450.0), stock: const Value(30)),
+      ProductsCompanion.insert(nameEn: 'Ashtar', nameHi: 'अस्तर', nameGu: 'અસ્તર', price: const Value(150.0), stock: const Value(100), unit: const Value('Meter')),
+      ProductsCompanion.insert(nameEn: 'Blouse', nameHi: 'ब्लाउज', nameGu: 'બ્લાઉઝ', price: const Value(250.0), stock: const Value(50), unit: const Value('Pcs')),
+      ProductsCompanion.insert(nameEn: 'Chaniya', nameHi: 'चनिया', nameGu: 'ચણિયા', varietyEn: const Value('Cotton'), varietyHi: const Value('सूती'), varietyGu: const Value('સુતરાઉ'), price: const Value(500.0), stock: const Value(20), unit: const Value('Pcs')),
+      ProductsCompanion.insert(nameEn: 'Chaniya', nameHi: 'चनिया', nameGu: 'ચણિયા', varietyEn: const Value('Lijibiji'), varietyHi: const Value('लिजीबिजी'), varietyGu: const Value('લીજીબીજી'), price: const Value(600.0), stock: const Value(15), unit: const Value('Pcs')),
+      ProductsCompanion.insert(nameEn: 'Fancy Blouse', nameHi: 'फैंसी ब्लाउज', nameGu: 'ફેન્સી બ્લાઉઝ', price: const Value(450.0), stock: const Value(30), unit: const Value('Pcs')),
     ];
     
     for (final product in productsList) {
@@ -143,6 +153,35 @@ extension LocalizedProduct on Product {
     if (lang == 'gu') return varietyGu;
     return varietyEn;
   }
+
+  String localizedUnit(String lang) {
+    if (unit == 'Meter') {
+      if (lang == 'gu') return 'મીટર';
+      if (lang == 'hi') return 'मीटर';
+      return 'Meter';
+    }
+    if (unit == 'Pcs') {
+      if (lang == 'gu') return 'નંગ';
+      if (lang == 'hi') return 'पीस';
+      return 'Pcs';
+    }
+    if (unit == 'Roll') {
+      if (lang == 'gu') return 'રોલ';
+      if (lang == 'hi') return 'रोल';
+      return 'Roll';
+    }
+    if (unit == 'Than') {
+      if (lang == 'gu') return 'તાકા';
+      if (lang == 'hi') return 'थान';
+      return 'Than';
+    }
+    if (unit == 'Bundle') {
+      if (lang == 'gu') return 'બંડલ';
+      if (lang == 'hi') return 'बंडल';
+      return 'Bundle';
+    }
+    return unit;
+  }
   
   String get displayNameEn => '$nameEn${varietyEn != null ? ' ($varietyEn)' : ''}';
   String get displayNameHi => '$nameHi${varietyHi != null ? ' ($varietyHi)' : ''}';
@@ -160,5 +199,18 @@ extension LocalizedParty on Party {
     if (lang == 'hi') return nameHi;
     if (lang == 'gu') return nameGu;
     return nameEn;
+  }
+
+  String displaySubtitle(String noPhoneText) {
+    final parts = <String>[];
+    if (firmName != null && firmName!.isNotEmpty) parts.add(firmName!);
+    if (phone != null && phone!.isNotEmpty) {
+      parts.add(phone!);
+    } else if (parts.isEmpty) {
+      parts.add(noPhoneText);
+    }
+    if (address != null && address!.isNotEmpty) parts.add(address!);
+    if (gstin != null && gstin!.isNotEmpty) parts.add('GST: $gstin');
+    return parts.join(' • ');
   }
 }

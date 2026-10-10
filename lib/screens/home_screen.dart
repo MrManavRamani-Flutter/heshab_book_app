@@ -87,6 +87,76 @@ class HomeScreen extends ConsumerWidget {
                 ],
               ),
             ),
+            const SizedBox(height: 12),
+            // Outstanding Khata Balances (Receivable & Payable)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Card(
+                      color: Colors.green.shade50.withValues(alpha: 0.5),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: Colors.green.shade200)),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(Icons.arrow_downward, color: Colors.green.shade700, size: 18),
+                                const SizedBox(width: 4),
+                                Expanded(child: Text(t('total_receivable'), style: TextStyle(color: Colors.green.shade800, fontWeight: FontWeight.bold, fontSize: 12), overflow: TextOverflow.ellipsis)),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            salesAsync.when(
+                              data: (sales) {
+                                final pending = sales.fold<double>(0.0, (sum, o) => sum + (o.totalAmount - o.paidAmount));
+                                return Text('₹${AppTranslations.formatCurrency(pending, lang)}', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.green.shade800));
+                              },
+                              loading: () => const Text('...'),
+                              error: (e, s) => const Text('₹0.00'),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Card(
+                      color: Colors.red.shade50.withValues(alpha: 0.5),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: Colors.red.shade200)),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(Icons.arrow_upward, color: Colors.red.shade700, size: 18),
+                                const SizedBox(width: 4),
+                                Expanded(child: Text(t('total_payable'), style: TextStyle(color: Colors.red.shade800, fontWeight: FontWeight.bold, fontSize: 12), overflow: TextOverflow.ellipsis)),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            purchasesAsync.when(
+                              data: (purchases) {
+                                final pending = purchases.fold<double>(0.0, (sum, o) => sum + (o.totalAmount - o.paidAmount));
+                                return Text('₹${AppTranslations.formatCurrency(pending, lang)}', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.red.shade800));
+                              },
+                              loading: () => const Text('...'),
+                              error: (e, s) => const Text('₹0.00'),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
             const SizedBox(height: 32),
           ],
         ),
@@ -234,7 +304,7 @@ class HomeScreen extends ConsumerWidget {
       children: [
         Text(value, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: color)),
         const SizedBox(height: 6),
-        Text(label, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey[700], fontWeight: FontWeight.w500)),
+        Text(label, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white70, fontWeight: FontWeight.w500)),
       ],
     );
   }

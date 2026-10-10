@@ -48,10 +48,49 @@ class _PartiesScreenState extends ConsumerState<PartiesScreen> with SingleTicker
     
     // Main display controller (for Auto mode)
     final mainNameController = TextEditingController(text: partyToEdit?.localizedName(lang) ?? '');
+    final firmNameController = TextEditingController(text: partyToEdit?.firmName ?? '');
     final phoneController = TextEditingController(text: partyToEdit?.phone ?? '');
+    final addressController = TextEditingController(text: partyToEdit?.address ?? '');
+    final gstinController = TextEditingController(text: partyToEdit?.gstin ?? '');
     
     final isEdit = partyToEdit != null;
     bool isManual = false;
+
+    void deleteParty(BuildContext dialogContext) async {
+      final confirm = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(t('delete')),
+          content: Text('${t('delete_confirm')}\n\n${t('delete_party_warning')}'),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(t('cancel'))),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text(t('delete')),
+            ),
+          ],
+        ),
+      );
+
+      if (confirm == true && partyToEdit != null) {
+        final partyId = partyToEdit.id;
+        final db = ref.read(databaseProvider);
+        await db.transaction(() async {
+          final partyOrders = await (db.select(db.orders)..where((o) => o.partyId.equals(partyId))).get();
+          for (final o in partyOrders) {
+            await (db.delete(db.payments)..where((p) => p.orderId.equals(o.id))).go();
+            await (db.delete(db.orderItems)..where((oi) => oi.orderId.equals(o.id))).go();
+          }
+          await (db.delete(db.orders)..where((o) => o.partyId.equals(partyId))).go();
+          await (db.delete(db.parties)..where((p) => p.id.equals(partyId))).go();
+        });
+        if (dialogContext.mounted) Navigator.pop(dialogContext);
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(t('party_deleted'))));
+        }
+      }
+    }
 
     showDialog(
       context: context,
@@ -94,7 +133,7 @@ class _PartiesScreenState extends ConsumerState<PartiesScreen> with SingleTicker
                           decoration: InputDecoration(
                             labelText: t('name'),
                             prefixIcon: const Icon(Icons.person),
-                            helperText: t('auto_translate_hint'), // I should add this key too, or just a generic hint
+                            helperText: t('auto_translate_hint'),
                           ),
                           validator: (val) => val == null || val.trim().isEmpty ? t('err_required') : null,
                         )
@@ -117,6 +156,15 @@ class _PartiesScreenState extends ConsumerState<PartiesScreen> with SingleTicker
                           validator: (val) => val == null || val.trim().isEmpty ? t('err_required') : null,
                         ),
                       ],
+
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: firmNameController,
+                        decoration: InputDecoration(
+                          labelText: t('firm_name'),
+                          prefixIcon: const Icon(Icons.store),
+                        ),
+                      ),
                       
                       const SizedBox(height: 16),
                       TextFormField(
@@ -124,11 +172,34 @@ class _PartiesScreenState extends ConsumerState<PartiesScreen> with SingleTicker
                         decoration: InputDecoration(labelText: t('phone_optional'), prefixIcon: const Icon(Icons.phone)),
                         keyboardType: TextInputType.phone,
                       ),
+
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: addressController,
+                        decoration: InputDecoration(labelText: t('address'), prefixIcon: const Icon(Icons.location_on)),
+                      ),
+
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: gstinController,
+                        decoration: InputDecoration(
+                          labelText: t('gstin'),
+                          prefixIcon: const Icon(Icons.receipt_long),
+                        ),
+                        textCapitalization: TextCapitalization.characters,
+                      ),
                     ],
                   ),
                 ),
               ),
               actions: [
+                if (isEdit)
+                  TextButton.icon(
+                    icon: const Icon(Icons.delete, color: Colors.red, size: 18),
+                    label: Text(t('delete'), style: const TextStyle(color: Colors.red)),
+                    onPressed: () => deleteParty(context),
+                  ),
+                const Spacer(),
                 TextButton(onPressed: () => Navigator.pop(context), child: Text(t('cancel'))),
                 ElevatedButton(
                   onPressed: () async {
@@ -149,13 +220,21 @@ class _PartiesScreenState extends ConsumerState<PartiesScreen> with SingleTicker
                         finalGu = translations['gu'] ?? typedName;
                       }
 
+                      final phoneVal = phoneController.text.trim().isEmpty ? null : phoneController.text.trim();
+                      final firmVal = firmNameController.text.trim().isEmpty ? null : firmNameController.text.trim();
+                      final addrVal = addressController.text.trim().isEmpty ? null : addressController.text.trim();
+                      final gstinVal = gstinController.text.trim().isEmpty ? null : gstinController.text.trim().toUpperCase();
+
                       if (isEdit) {
                         await (db.update(db.parties)..where((p) => p.id.equals(partyToEdit.id))).write(
                           PartiesCompanion(
                             nameEn: drift.Value(finalEn),
                             nameHi: drift.Value(finalHi),
                             nameGu: drift.Value(finalGu),
-                            phone: drift.Value(phoneController.text.trim().isEmpty ? null : phoneController.text.trim()),
+                            phone: drift.Value(phoneVal),
+                            firmName: drift.Value(firmVal),
+                            address: drift.Value(addrVal),
+                            gstin: drift.Value(gstinVal),
                           ),
                         );
                       } else {
@@ -165,7 +244,10 @@ class _PartiesScreenState extends ConsumerState<PartiesScreen> with SingleTicker
                             nameHi: finalHi,
                             nameGu: finalGu,
                             type: type,
-                            phone: drift.Value(phoneController.text.trim().isEmpty ? null : phoneController.text.trim()),
+                            phone: drift.Value(phoneVal),
+                            firmName: drift.Value(firmVal),
+                            address: drift.Value(addrVal),
+                            gstin: drift.Value(gstinVal),
                           ),
                         );
                       }
@@ -257,7 +339,7 @@ class _PartiesScreenState extends ConsumerState<PartiesScreen> with SingleTicker
   }
 }
 
-class _PartyList extends ConsumerWidget {
+class _PartyList extends ConsumerStatefulWidget {
   final OrderType type;
   final String searchQuery;
   final void Function(WidgetRef ref, Party party) onEdit;
@@ -265,79 +347,194 @@ class _PartyList extends ConsumerWidget {
   const _PartyList({required this.type, required this.searchQuery, required this.onEdit});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_PartyList> createState() => _PartyListState();
+}
+
+class _PartyListState extends ConsumerState<_PartyList> {
+  bool _pendingOnly = false;
+
+  @override
+  Widget build(BuildContext context) {
     final lang = ref.watch(localeProvider);
     String t(String key) => AppTranslations.translate(key, lang);
-    final partiesAsync = ref.watch(partiesProvider(type));
+    final partiesAsync = ref.watch(partiesProvider(widget.type));
+    final allOrdersAsync = ref.watch(allOrdersProvider);
+    final allOrders = allOrdersAsync.value ?? [];
+
+    double getPartyPending(int partyId) {
+      final pOrders = allOrders.where((o) => o.partyId == partyId);
+      return pOrders.fold<double>(0.0, (sum, o) => sum + (o.totalAmount - o.paidAmount));
+    }
 
     return partiesAsync.when(
       data: (parties) {
-        // Filter parties across all three language columns
+        // Filter parties across all three language columns, phone, firm, address, gstin
         final filteredParties = parties.where((p) {
-          if (searchQuery.isEmpty) return true;
-          final query = searchQuery.toLowerCase();
+          if (_pendingOnly && getPartyPending(p.id) <= 0.001) return false;
+          if (widget.searchQuery.isEmpty) return true;
+          final query = widget.searchQuery.toLowerCase();
           return p.nameEn.toLowerCase().contains(query) ||
                  p.nameHi.toLowerCase().contains(query) ||
                  p.nameGu.toLowerCase().contains(query) ||
-                 (p.phone?.toLowerCase().contains(query) ?? false);
+                 (p.firmName?.toLowerCase().contains(query) ?? false) ||
+                 (p.phone?.toLowerCase().contains(query) ?? false) ||
+                 (p.address?.toLowerCase().contains(query) ?? false) ||
+                 (p.gstin?.toLowerCase().contains(query) ?? false);
         }).toList();
 
         if (parties.isEmpty) {
           return Center(child: Text(t('no_parties'), style: const TextStyle(color: Colors.grey, fontSize: 16)));
         }
 
-        if (filteredParties.isEmpty) {
-          return const Center(child: Text('No matching parties found.', style: TextStyle(color: Colors.grey, fontSize: 16)));
-        }
-
-        return ListView.builder(
-          padding: const EdgeInsets.only(bottom: 80, top: 8),
-          itemCount: filteredParties.length,
-          itemBuilder: (context, index) {
-            final party = filteredParties[index];
-            return Card(
-              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-              child: InkWell(
-                onTap: () {
-                  context.push('/party-details/${party.id}');
-                },
-                borderRadius: BorderRadius.circular(12),
-                child: ListTile(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                  leading: CircleAvatar(
-                    backgroundColor: AppTheme.khataRed.withValues(alpha: 0.1),
-                    radius: 20,
-                    child: Text(
-                      party.localizedName(lang).characters.first.toUpperCase(),
-                      style: const TextStyle(color: AppTheme.khataRed, fontWeight: FontWeight.bold),
-                    ),
+        return Column(
+          children: [
+            // Quick Filter Chips Bar
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              color: Theme.of(context).colorScheme.surface,
+              child: Row(
+                children: [
+                  ChoiceChip(
+                    label: Text(t('filter_all'), style: const TextStyle(fontSize: 12)),
+                    selected: !_pendingOnly,
+                    onSelected: (val) => setState(() => _pendingOnly = false),
                   ),
-                  title: Text(party.localizedName(lang), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                  subtitle: Text(
-                    party.phone != null && party.phone!.isNotEmpty 
-                        ? party.phone! 
-                        : t('no_phone'), 
-                    style: TextStyle(color: Colors.grey.shade600),
-                  ),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (party.phone != null && party.phone!.isNotEmpty)
-                        IconButton(
-                          icon: const Icon(Icons.call, color: Colors.green, size: 20),
-                          tooltip: t('call'),
-                          onPressed: () => ActionHelper.makePhoneCall(party.phone!),
-                        ),
-                      IconButton(
-                        icon: const Icon(Icons.edit, color: Colors.blueGrey, size: 20),
-                        onPressed: () => onEdit(ref, party),
+                  const SizedBox(width: 8),
+                  ChoiceChip(
+                    label: Text(
+                      '${t('filter_pending_only')} (₹)',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: _pendingOnly ? Colors.red.shade900 : null,
+                        fontWeight: _pendingOnly ? FontWeight.bold : FontWeight.normal,
                       ),
-                    ],
+                    ),
+                    selected: _pendingOnly,
+                    selectedColor: Colors.red.shade100,
+                    onSelected: (val) => setState(() => _pendingOnly = true),
                   ),
-                ),
+                  const Spacer(),
+                  Text(
+                    '${filteredParties.length} ${t('parties')}',
+                    style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                  ),
+                ],
               ),
-            );
-          },
+            ),
+            const Divider(height: 1, thickness: 1),
+            
+            Expanded(
+              child: filteredParties.isEmpty
+                  ? Center(
+                      child: Text(
+                        _pendingOnly ? t('no_pending_balance') : 'No matching parties found.',
+                        style: const TextStyle(color: Colors.grey, fontSize: 16),
+                      ),
+                    )
+                  : ListView.builder(
+                      padding: const EdgeInsets.only(bottom: 80, top: 8),
+                      itemCount: filteredParties.length,
+                      itemBuilder: (context, index) {
+                        final party = filteredParties[index];
+                        final pending = getPartyPending(party.id);
+                        final partyName = party.localizedName(lang).trim();
+                        final initial = partyName.isNotEmpty ? partyName.characters.first.toUpperCase() : '?';
+
+                        return Card(
+                          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+                          child: InkWell(
+                            onTap: () {
+                              context.push('/party-details/${party.id}');
+                            },
+                            borderRadius: BorderRadius.circular(12),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                              child: Row(
+                                children: [
+                                  CircleAvatar(
+                                    backgroundColor: AppTheme.khataRed.withValues(alpha: 0.1),
+                                    radius: 20,
+                                    child: Text(
+                                      initial,
+                                      style: const TextStyle(color: AppTheme.khataRed, fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          partyName, 
+                                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        const SizedBox(height: 3),
+                                        Text(
+                                          party.displaySubtitle(t('no_phone')), 
+                                          style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          color: pending > 0.001
+                                              ? Colors.red.withValues(alpha: 0.12)
+                                              : Colors.green.withValues(alpha: 0.12),
+                                          borderRadius: BorderRadius.circular(6),
+                                        ),
+                                        child: Text(
+                                          pending > 0.001
+                                              ? '₹${AppTranslations.formatCurrency(pending, lang)}'
+                                              : t('settled'),
+                                          style: TextStyle(
+                                            color: pending > 0.001 ? Colors.red.shade800 : Colors.green.shade800,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          if (party.phone != null && party.phone!.isNotEmpty)
+                                            IconButton(
+                                              icon: const Icon(Icons.call, color: Colors.green, size: 20),
+                                              tooltip: t('call'),
+                                              padding: EdgeInsets.zero,
+                                              constraints: const BoxConstraints(),
+                                              onPressed: () => ActionHelper.makePhoneCall(party.phone!),
+                                            ),
+                                          const SizedBox(width: 12),
+                                          IconButton(
+                                            icon: const Icon(Icons.edit, color: Colors.blueGrey, size: 20),
+                                            padding: EdgeInsets.zero,
+                                            constraints: const BoxConstraints(),
+                                            onPressed: () => widget.onEdit(ref, party),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+            ),
+          ],
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
