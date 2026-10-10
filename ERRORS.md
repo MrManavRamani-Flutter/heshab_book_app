@@ -21,6 +21,7 @@
 | **ISS-008** | Crash / Range | `StateError: Bad state: No element` on deleted products in bills | `products.firstWhere` without fallback | Replaced with `products.where(...).firstOrNull` with safe fallback | ✅ **RESOLVED** |
 | **ISS-009** | Crash / Range | `RangeError` on initial character of empty party names | Unchecked `name.characters.first` | Added `name.trim().isNotEmpty ? ... : '?'` safety checks | ✅ **RESOLVED** |
 | **ISS-010** | UI / Overflow | `RenderFlex` overflow and eclipsed text on variable-length names | Missing text wrapping and flex constraints | Added `TextOverflow.ellipsis`, `maxLines`, and `SingleChildScrollView` to all forms and cards | ✅ **RESOLVED** |
+| **ISS-011** | iOS / Xcode | `Target Integrity (Xcode): IPHONEOS_DEPLOYMENT_TARGET is set to 9.0/12.0/13.0, range is 15.0 to 27.0.x` | Runner and CocoaPods pods (FMDB, sqlite3, etc.) defaulted to iOS < 15.0 | Enforced `IPHONEOS_DEPLOYMENT_TARGET = '15.0'` in `Runner.xcodeproj` and `Podfile` `post_install` hook across all targets | ✅ **RESOLVED** |
 
 ---
 
